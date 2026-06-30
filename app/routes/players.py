@@ -7,7 +7,7 @@ router = APIRouter()
 players = {
     "Devon Duffee": {
         "xp": 23,
-        "fatigue": 15,
+        "fatigue": 10,
         "level": 1,
         "stats": {
             "boxing": 83,
@@ -16,17 +16,17 @@ players = {
             "cardio": 77
         },
         "fight_camp": {
-            "active": False,
-            "opponent": None,
-            "days_left": 0,
-            "weight_cut": None,
+            "active": True,
+            "opponent": "Malik Brunson",
+            "days_left": 4,
+            "weight_cut": "medium",
             "peak": False
         },
         "scheduled_fight": {
-            "opponent": None,
-            "days_until_fight": 0,
-            "purse": 0,
-            "accepted": False,
+            "opponent": "Malik Brunson",
+            "days_until_fight": 9,
+            "purse": 15000,
+            "accepted": True,
             "completed": False
         },
         "injured": False,
