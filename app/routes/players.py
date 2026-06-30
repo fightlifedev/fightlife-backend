@@ -69,6 +69,36 @@ def train(player_name: str, skill: str):
     return updated_player
 
 
+@router.post("/book-fight/{player_name}/{opponent}/{days}/{purse}")
+def book_fight(player_name: str, opponent: str, days: int, purse: int):
+    players[player_name]["scheduled_fight"] = {
+        "opponent": opponent,
+        "days_until_fight": days,
+        "purse": purse,
+        "accepted": True,
+        "completed": False
+    }
+
+    return {
+        "message": f"{player_name} booked to fight {opponent}",
+        "scheduled_fight": players[player_name]["scheduled_fight"]
+    }
+
+
+@router.post("/start-camp/{player_name}/{opponent}/{days}")
+def start_camp(player_name: str, opponent: str, days: int):
+    players[player_name]["fight_camp"] = {
+        "active": True,
+        "opponent": opponent,
+        "days_left": days
+    }
+
+    return {
+        "message": f"{player_name} started fight camp",
+        "fight_camp": players[player_name]["fight_camp"]
+    }
+
+
 @router.post("/simulate-fight/{player_name}")
 def run_fight(player_name: str):
     player = players[player_name]
