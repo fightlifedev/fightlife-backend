@@ -2,6 +2,7 @@ from fastapi import APIRouter
 from app.database import players_collection
 from app.systems.training import train_player
 from app.systems.fightcamp import start_fight_camp
+from app.systems.fight_booking import book_fight
 
 router = APIRouter()
 
@@ -49,7 +50,6 @@ def train(player_name: str, skill: str):
         return {"error": "Skill not found"}
 
     updated_player = train_player(player, skill)
-
     players[player_name] = updated_player
 
     return {
@@ -75,6 +75,23 @@ def start_camp(player_name: str, opponent: str, days: int):
     return {
         "message": f"{player_name} started fight camp",
         "fight_camp": updated_player["fight_camp"]
+    }
+
+
+@router.post("/book-fight/{player_name}/{opponent}/{days}/{purse}")
+def book_player_fight(player_name: str, opponent: str, days: int, purse: int):
+    if player_name not in players:
+        return {"error": "Player not found"}
+
+    player = players[player_name]
+
+    updated_player = book_fight(player, opponent, days, purse)
+
+    players[player_name] = updated_player
+
+    return {
+        "message": f"{player_name} booked to fight {opponent}",
+        "scheduled_fight": updated_player["scheduled_fight"]
     }
 
 
