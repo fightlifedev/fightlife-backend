@@ -214,7 +214,7 @@ def run_fight(player_name: str):
 
     result = simulate_fight(player, opponent)
 
-   # RESET PLAYER AFTER FIGHT
+# RESET PLAYER AFTER FIGHT
 player["fight_camp"]["active"] = False
 player["fight_camp"]["opponent"] = None
 player["fight_camp"]["days_left"] = 0
