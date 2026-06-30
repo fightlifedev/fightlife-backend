@@ -247,6 +247,46 @@ def run_fight(player_name: str):
         "result": result,
         "fighter": player,
         "opponent": opponent
+        @router.post("/advance-day")
+def advance_day():
+    for player_name, player in players.items():
+
+        # FIGHT CAMP COUNTDOWN
+        if player["fight_camp"]["active"]:
+            if player["fight_camp"]["days_left"] > 0:
+                player["fight_camp"]["days_left"] -= 1
+
+            if player["fight_camp"]["days_left"] <= 0:
+                player["fight_camp"]["active"] = False
+                player["fight_camp"]["opponent"] = None
+                player["fight_camp"]["days_left"] = 0
+                player["fight_camp"]["peak"] = True
+
+        # SCHEDULED FIGHT COUNTDOWN
+        if player["scheduled_fight"]["opponent"]:
+            if player["scheduled_fight"]["days_until_fight"] > 0:
+                player["scheduled_fight"]["days_until_fight"] -= 1
+
+        # INJURY RECOVERY
+        if player["injured"]:
+            if player["injury_days_left"] > 0:
+                player["injury_days_left"] -= 1
+
+            if player["injury_days_left"] <= 0:
+                player["injured"] = False
+                player["injury_days_left"] = 0
+
+        # FATIGUE RECOVERY
+        if player["fatigue"] > 0:
+            player["fatigue"] -= 2
+
+            if player["fatigue"] < 0:
+                player["fatigue"] = 0
+
+    return {
+        "message": "Advanced world by 1 day",
+        "players": players
+    }
     }
 @router.get("/fighter-stats/{player_name}")
 def fighter_stats(player_name: str):
