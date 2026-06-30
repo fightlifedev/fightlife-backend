@@ -249,7 +249,7 @@ def run_fight(player_name: str):
         "opponent": opponent
     }
         
-        @router.post("/advance-day")
+@router.post("/advance-day")
 def advance_day():
     for player_name, player in players.items():
 
