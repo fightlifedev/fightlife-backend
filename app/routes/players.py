@@ -197,13 +197,14 @@ def book_fight(player_name: str, opponent: str, days: int, purse: int):
 
 
 @router.post("/simulate-fight/{player_name}")
+@router.post("/simulate-fight/{player_name}")
 def run_fight(player_name: str):
     if player_name not in players:
         return {"error": "Player not found"}
 
     player = players[player_name]
 
-    if not player["scheduled_fight"]["opponent"]:
+    if "scheduled_fight" not in player:
         return {"error": "No fight scheduled"}
 
     opponent_name = player["scheduled_fight"]["opponent"]
@@ -213,41 +214,40 @@ def run_fight(player_name: str):
 
     opponent = players[opponent_name]
 
-  result = simulate_fight(player, opponent)
+    result = simulate_fight(player, opponent)
 
-# RESET PLAYER AFTER FIGHT
-player["fight_camp"]["active"] = False
-player["fight_camp"]["opponent"] = None
-player["fight_camp"]["days_left"] = 0
+    # RESET PLAYER AFTER FIGHT
+    player["fight_camp"]["active"] = False
+    player["fight_camp"]["opponent"] = None
+    player["fight_camp"]["days_left"] = 0
 
-player["scheduled_fight"] = {
-    "opponent": None,
-    "days_until_fight": 0,
-    "purse": 0,
-    "accepted": False,
-    "completed": True
-}
+    player["scheduled_fight"] = {
+        "opponent": None,
+        "days_until_fight": 0,
+        "purse": 0,
+        "accepted": False,
+        "completed": True
+    }
 
-# RESET OPPONENT AFTER FIGHT
-opponent["fight_camp"]["active"] = False
-opponent["fight_camp"]["opponent"] = None
-opponent["fight_camp"]["days_left"] = 0
+    # RESET OPPONENT AFTER FIGHT
+    opponent["fight_camp"]["active"] = False
+    opponent["fight_camp"]["opponent"] = None
+    opponent["fight_camp"]["days_left"] = 0
 
-opponent["scheduled_fight"] = {
-    "opponent": None,
-    "days_until_fight": 0,
-    "purse": 0,
-    "accepted": False,
-    "completed": True
-}
+    opponent["scheduled_fight"] = {
+        "opponent": None,
+        "days_until_fight": 0,
+        "purse": 0,
+        "accepted": False,
+        "completed": True
+    }
 
-return {
-    "message": f"{player_name} completed fight",
-    "result": result,
-    "fighter": player,
-    "opponent": opponent
-}
-
+    return {
+        "message": f"{player_name} completed fight",
+        "result": result,
+        "fighter": player,
+        "opponent": opponent
+    }
 @router.get("/fighter-stats/{player_name}")
 def fighter_stats(player_name: str):
     if player_name not in players:
