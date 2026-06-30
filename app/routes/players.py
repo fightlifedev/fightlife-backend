@@ -16,17 +16,17 @@ players = {
             "cardio": 77
         },
         "fight_camp": {
-            "active": True,
-            "opponent": "Malik Brunson",
-            "days_left": 34,
-            "weight_cut": "medium",
+            "active": False,
+            "opponent": None,
+            "days_left": 0,
+            "weight_cut": None,
             "peak": False
         },
         "scheduled_fight": {
-            "opponent": "Malik Brunson",
-            "days_until_fight": 41,
-            "purse": 15000,
-            "accepted": True,
+            "opponent": None,
+            "days_until_fight": 0,
+            "purse": 0,
+            "accepted": False,
             "completed": False
         },
         "injured": False,
@@ -65,11 +65,66 @@ def train(player_name: str, skill: str):
 
     return {
         "message": f"{player_name} trained {skill}",
-        "xp_gain": updated_player["xp"] - 0,
-        "fatigue_gain": updated_player["fatigue"] - 0,
+        "xp_gain": updated_player["xp"],
+        "fatigue_gain": updated_player["fatigue"],
         "current_xp": updated_player["xp"],
         "current_level": updated_player["level"],
         "updated_stat": updated_player["stats"][skill]
+    }
+
+
+@router.post("/start-camp/{player_name}/{opponent}/{days}")
+def start_camp(player_name: str, opponent: str, days: int):
+    if player_name not in players:
+        return {"error": "Player not found"}
+
+    players[player_name]["fight_camp"] = {
+        "active": True,
+        "opponent": opponent,
+        "days_left": days,
+        "weight_cut": "medium",
+        "peak": False
+    }
+
+    return {
+        "message": f"{player_name} started fight camp",
+        "fight_camp": players[player_name]["fight_camp"]
+    }
+
+
+@router.post("/book-fight/{player_name}/{opponent}/{days}/{purse}")
+def book_fight(player_name: str, opponent: str, days: int, purse: int):
+    if player_name not in players:
+        return {"error": "Player not found"}
+
+    players[player_name]["scheduled_fight"] = {
+        "opponent": opponent,
+        "days_until_fight": days,
+        "purse": purse,
+        "accepted": True,
+        "completed": False
+    }
+
+    return {
+        "message": f"{player_name} booked to fight {opponent}",
+        "scheduled_fight": players[player_name]["scheduled_fight"]
+    }
+
+
+@router.post("/simulate-fight/{player_name}")
+def simulate_fight(player_name: str):
+    if player_name not in players:
+        return {"error": "Player not found"}
+
+    player = players[player_name]
+
+    player["scheduled_fight"]["completed"] = True
+    player["fight_camp"]["active"] = False
+    player["fatigue"] += 20
+
+    return {
+        "message": f"{player_name} completed fight",
+        "fighter": player
     }
 
 
