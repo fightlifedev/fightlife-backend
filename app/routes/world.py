@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from datetime import datetime, timedelta
 from app.systems.recovery import recover_player
+from app.systems.fightcamp import advance_fight_camp
 
 router = APIRouter()
 
@@ -16,13 +17,23 @@ players = {
         "age": 19,
         "injured": False,
         "injury_days_left": 0,
-        "fatigue": 20
+        "fatigue": 20,
+        "fight_camp": {
+            "active": False,
+            "opponent": None,
+            "days_left": 0,
+            "intensity": "medium",
+            "weight_cut": 0,
+            "peak": False
+        }
     }
 }
+
 
 @router.get("/world-state")
 def get_world_state():
     return world_state
+
 
 @router.post("/advance-day")
 def advance_day():
@@ -30,12 +41,14 @@ def advance_day():
 
     for player_name in players:
         players[player_name] = recover_player(players[player_name])
+        players[player_name] = advance_fight_camp(players[player_name])
 
     return {
         "message": "Day advanced",
         "new_date": world_state["current_date"],
         "players": players
     }
+
 
 @router.get("/players-status")
 def player_status():
