@@ -1,52 +1,11 @@
 from fastapi import APIRouter
 from app.database import players_collection
 from app.systems.training import train_player
+import random
 
 router = APIRouter()
 
 players = {
-    import random
-
-def simulate_fight(player, opponent):
-    player_score = (
-        player["stats"]["boxing"] +
-        player["stats"]["wrestling"] +
-        player["stats"]["power"] +
-        player["stats"]["cardio"] +
-        random.randint(1, 20)
-    )
-
-    opponent_score = (
-        opponent["stats"]["boxing"] +
-        opponent["stats"]["wrestling"] +
-        opponent["stats"]["power"] +
-        opponent["stats"]["cardio"] +
-        random.randint(1, 20)
-    )
-
-    if player_score > opponent_score:
-        winner = player["name"]
-        player["record"]["wins"] += 1
-        opponent["record"]["losses"] += 1
-        player["money"] += player["scheduled_fight"]["purse"]
-        player["reputation"] += 5
-    else:
-        winner = opponent["name"]
-        opponent["record"]["wins"] += 1
-        player["record"]["losses"] += 1
-        opponent["money"] += player["scheduled_fight"]["purse"]
-        opponent["reputation"] += 5
-
-    player["scheduled_fight"]["completed"] = True
-    player["fight_camp"]["active"] = False
-    player["fight_camp"]["opponent"] = None
-    player["fight_camp"]["days_left"] = 0
-
-    return {
-        "winner": winner,
-        "player_score": player_score,
-        "opponent_score": opponent_score
-    }
     "Devon Duffee": {
         "name": "Devon Elias Duffee",
         "age": 19,
@@ -74,7 +33,7 @@ def simulate_fight(player, opponent):
         },
         "scheduled_fight": {
             "opponent": "Malik Brunson",
-            "days_until_fight": 9,
+            "days_until_fight": 0,
             "purse": 15000,
             "accepted": True,
             "completed": False
@@ -133,6 +92,48 @@ def simulate_fight(player, opponent):
 }
 
 
+def simulate_fight(player, opponent):
+    player_score = (
+        player["stats"]["boxing"]
+        + player["stats"]["wrestling"]
+        + player["stats"]["power"]
+        + player["stats"]["cardio"]
+        + random.randint(1, 20)
+    )
+
+    opponent_score = (
+        opponent["stats"]["boxing"]
+        + opponent["stats"]["wrestling"]
+        + opponent["stats"]["power"]
+        + opponent["stats"]["cardio"]
+        + random.randint(1, 20)
+    )
+
+    if player_score > opponent_score:
+        winner = player["name"]
+        player["record"]["wins"] += 1
+        opponent["record"]["losses"] += 1
+        player["money"] += player["scheduled_fight"]["purse"]
+        player["reputation"] += 5
+    else:
+        winner = opponent["name"]
+        opponent["record"]["wins"] += 1
+        player["record"]["losses"] += 1
+        opponent["money"] += player["scheduled_fight"]["purse"]
+        opponent["reputation"] += 5
+
+    player["scheduled_fight"]["completed"] = True
+    player["fight_camp"]["active"] = False
+    player["fight_camp"]["opponent"] = None
+    player["fight_camp"]["days_left"] = 0
+
+    return {
+        "winner": winner,
+        "player_score": player_score,
+        "opponent_score": opponent_score
+    }
+
+
 @router.post("/players")
 def create_player(player: dict):
     result = players_collection.insert_one(player)
@@ -144,8 +145,7 @@ def create_player(player: dict):
 
 @router.get("/players")
 def get_players():
-    players_list = list(players_collection.find({}, {"_id": 0}))
-    return players_list
+    return players
 
 
 @router.post("/train/{player_name}/{skill}")
@@ -161,14 +161,7 @@ def train(player_name: str, skill: str):
     updated_player = train_player(player, skill)
     players[player_name] = updated_player
 
-    return {
-        "message": f"{player_name} trained {skill}",
-        "xp_gain": updated_player["xp"],
-        "fatigue_gain": updated_player["fatigue"],
-        "current_xp": updated_player["xp"],
-        "current_level": updated_player["level"],
-        "updated_stat": updated_player["stats"][skill]
-    }
+    return updated_player
 
 
 @router.post("/start-camp/{player_name}/{opponent}/{days}")
@@ -184,10 +177,7 @@ def start_camp(player_name: str, opponent: str, days: int):
         "peak": False
     }
 
-    return {
-        "message": f"{player_name} started fight camp",
-        "fight_camp": players[player_name]["fight_camp"]
-    }
+    return players[player_name]["fight_camp"]
 
 
 @router.post("/book-fight/{player_name}/{opponent}/{days}/{purse}")
@@ -203,10 +193,7 @@ def book_fight(player_name: str, opponent: str, days: int, purse: int):
         "completed": False
     }
 
-    return {
-        "message": f"{player_name} booked to fight {opponent}",
-        "scheduled_fight": players[player_name]["scheduled_fight"]
-    }
+    return players[player_name]["scheduled_fight"]
 
 
 @router.post("/simulate-fight/{player_name}")
@@ -216,7 +203,7 @@ def run_fight(player_name: str):
 
     player = players[player_name]
 
-    if "scheduled_fight" not in player:
+    if not player["scheduled_fight"]["opponent"]:
         return {"error": "No fight scheduled"}
 
     opponent_name = player["scheduled_fight"]["opponent"]
