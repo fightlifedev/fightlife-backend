@@ -195,8 +195,6 @@ def book_fight(player_name: str, opponent: str, days: int, purse: int):
 
     return players[player_name]["scheduled_fight"]
 
-
-@router.post("/simulate-fight/{player_name}")
 @router.post("/simulate-fight/{player_name}")
 def run_fight(player_name: str):
     if player_name not in players:
@@ -204,7 +202,7 @@ def run_fight(player_name: str):
 
     player = players[player_name]
 
-    if "scheduled_fight" not in player:
+    if not player["scheduled_fight"]["opponent"]:
         return {"error": "No fight scheduled"}
 
     opponent_name = player["scheduled_fight"]["opponent"]
@@ -248,7 +246,8 @@ def run_fight(player_name: str):
         "fighter": player,
         "opponent": opponent
     }
-        
+
+
 @router.post("/advance-day")
 def advance_day():
     for player_name, player in players.items():
@@ -269,27 +268,11 @@ def advance_day():
             if player["scheduled_fight"]["days_until_fight"] > 0:
                 player["scheduled_fight"]["days_until_fight"] -= 1
 
-        # INJURY RECOVERY
-        if player["injured"]:
-            if player["injury_days_left"] > 0:
-                player["injury_days_left"] -= 1
-
-            if player["injury_days_left"] <= 0:
-                player["injured"] = False
-                player["injury_days_left"] = 0
-
-        # FATIGUE RECOVERY
-        if player["fatigue"] > 0:
-            player["fatigue"] -= 2
-
-            if player["fatigue"] < 0:
-                player["fatigue"] = 0
-
     return {
-        "message": "Advanced world by 1 day",
+        "message": "1 day advanced",
         "players": players
     }
-    }
+
 @router.get("/fighter-stats/{player_name}")
 def fighter_stats(player_name: str):
     if player_name not in players:
