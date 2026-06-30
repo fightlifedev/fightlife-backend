@@ -1,7 +1,6 @@
 from fastapi import APIRouter
 from datetime import datetime, timedelta
-from systems.injuries import injury_check
-
+from app.systems.injuries import injury_check
 router = APIRouter()
 
 world_state = {
