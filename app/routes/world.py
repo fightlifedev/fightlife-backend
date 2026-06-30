@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from datetime import datetime, timedelta
 from app.systems.recovery import recover_player
+from app.routes.players import players
 
 router = APIRouter()
 
@@ -9,27 +10,6 @@ world_state = {
     "economy": "stable",
     "fight_week": 1,
     "major_event": None
-}
-
-players = {
-    "Devon Duffee": {
-        "age": 19,
-        "injured": False,
-        "injury_days_left": 0,
-        "fatigue": 20,
-        "fight_camp": {
-            "active": False,
-            "opponent": None,
-            "days_left": 0
-        },
-        "scheduled_fight": {
-            "opponent": None,
-            "days_until_fight": 0,
-            "purse": 0,
-            "accepted": False,
-            "completed": False
-        }
-    }
 }
 
 
