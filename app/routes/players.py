@@ -5,6 +5,48 @@ from app.systems.training import train_player
 router = APIRouter()
 
 players = {
+    import random
+
+def simulate_fight(player, opponent):
+    player_score = (
+        player["stats"]["boxing"] +
+        player["stats"]["wrestling"] +
+        player["stats"]["power"] +
+        player["stats"]["cardio"] +
+        random.randint(1, 20)
+    )
+
+    opponent_score = (
+        opponent["stats"]["boxing"] +
+        opponent["stats"]["wrestling"] +
+        opponent["stats"]["power"] +
+        opponent["stats"]["cardio"] +
+        random.randint(1, 20)
+    )
+
+    if player_score > opponent_score:
+        winner = player["name"]
+        player["record"]["wins"] += 1
+        opponent["record"]["losses"] += 1
+        player["money"] += player["scheduled_fight"]["purse"]
+        player["reputation"] += 5
+    else:
+        winner = opponent["name"]
+        opponent["record"]["wins"] += 1
+        player["record"]["losses"] += 1
+        opponent["money"] += player["scheduled_fight"]["purse"]
+        opponent["reputation"] += 5
+
+    player["scheduled_fight"]["completed"] = True
+    player["fight_camp"]["active"] = False
+    player["fight_camp"]["opponent"] = None
+    player["fight_camp"]["days_left"] = 0
+
+    return {
+        "winner": winner,
+        "player_score": player_score,
+        "opponent_score": opponent_score
+    }
     "Devon Duffee": {
         "name": "Devon Elias Duffee",
         "age": 19,
