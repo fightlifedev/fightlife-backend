@@ -214,31 +214,33 @@ def run_fight(player_name: str):
 
     result = simulate_fight(player, opponent)
 
-    # RESET PLAYER AFTER FIGHT
-    player["fight_camp"]["active"] = False
-    player["fight_camp"]["opponent"] = None
-    player["fight_camp"]["days_left"] = 0
+   # RESET PLAYER AFTER FIGHT
+player["fight_camp"]["active"] = False
+player["fight_camp"]["opponent"] = None
+player["fight_camp"]["days_left"] = 0
+player["fight_camp"]["peak"] = False
 
-    player["scheduled_fight"] = {
-        "opponent": None,
-        "days_until_fight": 0,
-        "purse": 0,
-        "accepted": False,
-        "completed": True
-    }
+player["scheduled_fight"] = {
+    "opponent": None,
+    "days_until_fight": 0,
+    "purse": 0,
+    "accepted": False,
+    "completed": True
+}
 
-    # RESET OPPONENT AFTER FIGHT
-    opponent["fight_camp"]["active"] = False
-    opponent["fight_camp"]["opponent"] = None
-    opponent["fight_camp"]["days_left"] = 0
+# RESET OPPONENT AFTER FIGHT
+opponent["fight_camp"]["active"] = False
+opponent["fight_camp"]["opponent"] = None
+opponent["fight_camp"]["days_left"] = 0
+opponent["fight_camp"]["peak"] = False
 
-    opponent["scheduled_fight"] = {
-        "opponent": None,
-        "days_until_fight": 0,
-        "purse": 0,
-        "accepted": False,
-        "completed": True
-    }
+opponent["scheduled_fight"] = {
+    "opponent": None,
+    "days_until_fight": 0,
+    "purse": 0,
+    "accepted": False,
+    "completed": True
+}
 
     return {
         "message": f"{player_name} completed fight",
