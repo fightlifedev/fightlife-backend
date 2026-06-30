@@ -1,12 +1,15 @@
 from fastapi import APIRouter
 from app.database import players_collection
 from app.systems.training import train_player
+from app.systems.fightcamp import start_fight_camp
 
 router = APIRouter()
 
 players = {
     "Devon Duffee": {
         "xp": 0,
+        "level": 1,
+        "potential": 50,
         "fatigue": 0,
         "stats": {
             "boxing": 82,
@@ -43,15 +46,33 @@ def train(player_name: str, skill: str):
     if skill not in player["stats"]:
         return {"error": "Skill not found"}
 
-    result = train_player(player, skill)
+    updated_player = train_player(player, skill)
+
+    players[player_name] = updated_player
 
     return {
         "message": f"{player_name} trained {skill}",
-        "xp_gain": result["xp_gain"],
-        "fatigue_gain": result["fatigue_gain"],
-        "current_xp": result["current_xp"],
-        "current_level": result["current_level"],
-        "updated_stat": result["updated_stat"]
+        "xp_gain": updated_player["xp"],
+        "fatigue": updated_player["fatigue"],
+        "current_xp": updated_player["xp"],
+        "current_level": updated_player["level"],
+        "updated_stat": updated_player["stats"][skill]
+    }
+
+
+@router.post("/start-camp/{player_name}/{opponent}/{days}")
+def start_camp(player_name: str, opponent: str, days: int):
+    if player_name not in players:
+        return {"error": "Player not found"}
+
+    player = players[player_name]
+    updated_player = start_fight_camp(player, opponent, days)
+
+    players[player_name] = updated_player
+
+    return {
+        "message": f"{player_name} started fight camp",
+        "fight_camp": updated_player["fight_camp"]
     }
 
 
