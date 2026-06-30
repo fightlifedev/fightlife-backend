@@ -6,9 +6,17 @@ router = APIRouter()
 
 players = {
     "Devon Duffee": {
+        "name": "Devon Elias Duffee",
+        "age": 19,
+        "career": "MMA Fighter",
+        "division": "Light Heavyweight",
+        "archetype": "Pressure Boxer",
         "xp": 23,
         "fatigue": 10,
         "level": 1,
+        "potential": 95,
+        "morale": 100,
+        "hometown": "Detroit",
         "stats": {
             "boxing": 83,
             "wrestling": 80,
@@ -30,7 +38,55 @@ players = {
             "completed": False
         },
         "injured": False,
-        "injury_days_left": 0
+        "injury_days_left": 0,
+        "record": {
+            "wins": 0,
+            "losses": 0
+        },
+        "reputation": 20,
+        "money": 10000
+    },
+
+    "Malik Brunson": {
+        "name": "Malik Brunson",
+        "age": 21,
+        "career": "MMA Fighter",
+        "division": "Light Heavyweight",
+        "archetype": "Wrestler",
+        "xp": 0,
+        "fatigue": 0,
+        "level": 1,
+        "potential": 76,
+        "morale": 88,
+        "hometown": "Atlanta",
+        "stats": {
+            "boxing": 78,
+            "wrestling": 76,
+            "power": 82,
+            "cardio": 80
+        },
+        "fight_camp": {
+            "active": False,
+            "opponent": None,
+            "days_left": 0,
+            "weight_cut": None,
+            "peak": False
+        },
+        "scheduled_fight": {
+            "opponent": None,
+            "days_until_fight": 0,
+            "purse": 0,
+            "accepted": False,
+            "completed": False
+        },
+        "injured": False,
+        "injury_days_left": 0,
+        "record": {
+            "wins": 0,
+            "losses": 0
+        },
+        "reputation": 12,
+        "money": 5000
     }
 }
 
