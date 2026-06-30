@@ -213,14 +213,40 @@ def run_fight(player_name: str):
 
     opponent = players[opponent_name]
 
-    result = simulate_fight(player, opponent)
+  result = simulate_fight(player, opponent)
 
-    return {
-        "message": f"{player_name} completed fight",
-        "result": result,
-        "fighter": player
-    }
+# RESET PLAYER AFTER FIGHT
+player["fight_camp"]["active"] = False
+player["fight_camp"]["opponent"] = None
+player["fight_camp"]["days_left"] = 0
 
+player["scheduled_fight"] = {
+    "opponent": None,
+    "days_until_fight": 0,
+    "purse": 0,
+    "accepted": False,
+    "completed": True
+}
+
+# RESET OPPONENT AFTER FIGHT
+opponent["fight_camp"]["active"] = False
+opponent["fight_camp"]["opponent"] = None
+opponent["fight_camp"]["days_left"] = 0
+
+opponent["scheduled_fight"] = {
+    "opponent": None,
+    "days_until_fight": 0,
+    "purse": 0,
+    "accepted": False,
+    "completed": True
+}
+
+return {
+    "message": f"{player_name} completed fight",
+    "result": result,
+    "fighter": player,
+    "opponent": opponent
+}
 
 @router.get("/fighter-stats/{player_name}")
 def fighter_stats(player_name: str):
