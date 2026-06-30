@@ -1,8 +1,10 @@
-from motor.motor_asyncio import AsyncIOMotorClient
-from app.config import MONGO_URI, DATABASE_NAME
+from pymongo import MongoClient
+import os
 
-client = AsyncIOMotorClient(MONGO_URI)
-db = client[DATABASE_NAME]
+MONGO_URI = os.getenv("MONGO_URI")
 
+client = MongoClient(MONGO_URI)
+
+db = client["fightlife"]
 players_collection = db["players"]
 world_collection = db["world"]
