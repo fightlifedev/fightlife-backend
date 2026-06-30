@@ -11,6 +11,8 @@ players = {
         "level": 1,
         "potential": 50,
         "fatigue": 0,
+        "injured": False,
+        "injury_days_left": 0,
         "stats": {
             "boxing": 82,
             "wrestling": 80,
