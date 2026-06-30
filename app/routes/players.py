@@ -112,18 +112,27 @@ def book_fight(player_name: str, opponent: str, days: int, purse: int):
 
 
 @router.post("/simulate-fight/{player_name}")
-def simulate_fight(player_name: str):
+def run_fight(player_name: str):
     if player_name not in players:
         return {"error": "Player not found"}
 
     player = players[player_name]
 
-    player["scheduled_fight"]["completed"] = True
-    player["fight_camp"]["active"] = False
-    player["fatigue"] += 20
+    if "scheduled_fight" not in player:
+        return {"error": "No fight scheduled"}
+
+    opponent_name = player["scheduled_fight"]["opponent"]
+
+    if opponent_name not in players:
+        return {"error": "Opponent not found"}
+
+    opponent = players[opponent_name]
+
+    result = simulate_fight(player, opponent)
 
     return {
         "message": f"{player_name} completed fight",
+        "result": result,
         "fighter": player
     }
 
