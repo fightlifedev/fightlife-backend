@@ -11,7 +11,13 @@ def train_player(player, skill):
     if skill in player["stats"]:
         player["stats"][skill] += 1
 
-    level_up_check(player)
+    if "level" not in player:
+    player["level"] = 1
+
+if "potential" not in player:
+    player["potential"] = 50
+
+level_up_check(player)
 
     return {
         "xp_gain": xp_gain,
