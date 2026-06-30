@@ -240,7 +240,7 @@ opponent["scheduled_fight"] = {
     "purse": 0,
     "accepted": False,
     "completed": True
-}
+        }
     return {
         "message": f"{player_name} completed fight",
         "result": result,
