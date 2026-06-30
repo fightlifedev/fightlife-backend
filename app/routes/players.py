@@ -43,15 +43,15 @@ def train(player_name: str, skill: str):
     if skill not in player["stats"]:
         return {"error": "Skill not found"}
 
-    updated_player = train_player(player, skill)
-
-    players[player_name] = updated_player
+    result = train_player(player, skill)
 
     return {
         "message": f"{player_name} trained {skill}",
-        "xp": updated_player["xp"],
-        "fatigue": updated_player["fatigue"],
-        "updated_stat": updated_player["stats"][skill]
+        "xp_gain": result["xp_gain"],
+        "fatigue_gain": result["fatigue_gain"],
+        "current_xp": result["current_xp"],
+        "current_level": result["current_level"],
+        "updated_stat": result["updated_stat"]
     }
 
 
