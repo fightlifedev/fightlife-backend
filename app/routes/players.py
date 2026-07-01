@@ -242,7 +242,7 @@ opponent["scheduled_fight"] = {
         "completed": True
     }
 
-    return {
+return {
         "message": f"{player_name} completed fight",
         "result": result,
         "fighter": player,
