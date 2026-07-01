@@ -227,7 +227,7 @@ players[opponent]["fight_camp"] = {
     "weight_cut": "medium",
     "peak": False
 }
-    return {
+return {
         "fighter": players[player_name],
         "opponent": players[opponent]
     }
