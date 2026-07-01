@@ -1,158 +1,167 @@
 import random
-from datetime import datetime
-from app.entities.world_entities import world_entities
-
-
-# =========================
-# CAGEWIRE MASTER FEED
-# =========================
+from datetime import datetime, timedelta
 
 cagewire_feed = []
 
+# ==========================
+# ENTITY DATABASE (TEST)
+# ==========================
 
-# =========================
+entities = [
+    {
+        "first_name": "Conor",
+        "last_name": "McGregor",
+        "type": "fighter",
+        "followers": 46000000,
+        "verified": True,
+        "activity": 0.85,
+        "emotion": "confident"
+    },
+    {
+        "first_name": "Islam",
+        "last_name": "Makhachev",
+        "type": "fighter",
+        "followers": 9200000,
+        "verified": True,
+        "activity": 0.65,
+        "emotion": "focused"
+    },
+    {
+        "first_name": "Dana",
+        "last_name": "White",
+        "type": "promoter",
+        "followers": 8100000,
+        "verified": True,
+        "activity": 0.40,
+        "emotion": "neutral"
+    },
+    {
+        "first_name": "Jake",
+        "last_name": "MMAFan",
+        "type": "fan",
+        "followers": 843,
+        "verified": False,
+        "activity": 0.75,
+        "emotion": "excited"
+    }
+]
+
+# ==========================
 # POST TEMPLATES
-# =========================
+# ==========================
 
-fighter_templates = [
-    "Locked in. Camp starts now.",
-    "Another body added to the list.",
-    "I’m coming for gold.",
+fighter_posts = [
+    "Big fight news soon.",
     "Nobody can stop me.",
-    "Respect to my opponent. Big fight coming.",
-    "Injury won’t stop me.",
-    "Grinding while y’all sleep.",
-    "Fight news dropping soon.",
-    "Detroit made me.",
-    "New contract. New chapter."
+    "Camp going crazy.",
+    "Respect to my opponent.",
+    "Focused."
 ]
 
-fan_templates = [
-    "This dude is overrated.",
-    "Future champ.",
-    "That KO was insane.",
-    "I got money on him.",
-    "He’s ducking smoke.",
-    "This division getting crazy.",
-    "Best prospect alive.",
-    "He needs better defense.",
-    "UFC needs to sign him.",
-    "This man different."
+fan_posts = [
+    "That fight was insane.",
+    "He got robbed.",
+    "Future champ right there.",
+    "Best fighter alive."
 ]
 
+promoter_posts = [
+    "Huge announcement soon.",
+    "Contracts being finalized.",
+    "Big things coming."
+]
 
-# =========================
-# HANDLE SYSTEM
-# =========================
+# ==========================
+# HANDLE GENERATOR
+# ==========================
 
 def generate_handle(entity):
-    # Keep existing handle if already set
-    if "handle" in entity and entity["handle"]:
-        return entity["handle"]
+    return f"@{entity['first_name'].lower()}.{entity['last_name'].lower()}"
 
-    # Use full name instead of first_name/last_name
-    full_name = entity.get("name", "Unknown User")
-    parts = full_name.split()
+# ==========================
+# TIMESTAMP ENGINE
+# ==========================
 
-    first = parts[0].lower() if len(parts) > 0 else "user"
-    last = parts[-1].lower() if len(parts) > 1 else str(random.randint(100, 999))
+def generate_dynamic_timestamp():
+    minutes_ago = random.randint(1, 1440)
+    return str(datetime.now() - timedelta(minutes=minutes_ago))
 
-    choices = [
-        f"{first}{last}",
-        f"{first}_{last}",
-        f"{first}.{last}",
-        f"{last}{random.randint(1,999)}",
-        f"{first}{random.randint(10,9999)}",
-        f"real{first}",
-        f"the{first}{last}"
-    ]
+# ==========================
+# ENGAGEMENT ENGINE
+# ==========================
 
-    handle = "@" + random.choice(choices)
+def generate_engagement(followers):
+    likes = random.randint(
+        max(5, int(followers * 0.001)),
+        max(50, int(followers * 0.03))
+    )
 
-    entity["handle"] = handle
-    return handle
+    comments = random.randint(
+        max(1, int(likes * 0.05)),
+        max(2, int(likes * 0.25))
+    )
 
-# =========================
-# POST CREATOR
-# =========================
+    shares = random.randint(
+        max(1, int(likes * 0.01)),
+        max(2, int(likes * 0.10))
+    )
 
-def create_post(author, category):
-    if category == "fighter":
-        content = random.choice(fighter_templates)
+    return likes, comments, shares
+
+# ==========================
+# SHOULD POST?
+# ==========================
+
+def should_post(entity):
+    return random.random() < entity["activity"]
+
+# ==========================
+# CREATE POST
+# ==========================
+
+def create_post(entity):
+    if entity["type"] == "fighter":
+        content = random.choice(fighter_posts)
+    elif entity["type"] == "fan":
+        content = random.choice(fan_posts)
     else:
-        content = random.choice(fan_templates)
+        content = random.choice(promoter_posts)
 
-    # Make sure handle exists
-    if "handle" not in author:
-        author["handle"] = generate_handle(author)
+    likes, comments, shares = generate_engagement(entity["followers"])
 
     post = {
-        "author": author["name"],
-        "handle": author["handle"],
-        "verified": author.get("verified", False),
-        "followers": author.get("followers", 0),
+        "author": f"{entity['first_name']} {entity['last_name']}",
+        "handle": generate_handle(entity),
+        "verified": entity["verified"],
+        "followers": entity["followers"],
         "content": content,
-        "likes": random.randint(0, 5000),
-        "comments": random.randint(0, 800),
-        "shares": random.randint(0, 400),
-        "timestamp": str(datetime.now()),
-        "category": category
+        "likes": likes,
+        "comments": comments,
+        "shares": shares,
+        "timestamp": generate_dynamic_timestamp(),
+        "category": entity["type"]
     }
 
     cagewire_feed.append(post)
+
     return post
 
-
-# =========================
-# AUTO POST ENGINE
-# =========================
+# ==========================
+# MAIN CYCLE
+# ==========================
 
 def run_cagewire_cycle():
-    fighters = world_entities["fighters"]
-    fans = world_entities["fans"]
+    new_posts = []
 
-    generated_posts = []
+    for entity in entities:
+        if should_post(entity):
+            new_posts.append(create_post(entity))
 
-    # Fighters post
-    for fighter in fighters:
-        if "handle" not in fighter:
-            fighter["handle"] = generate_handle(fighter)
+    return new_posts
 
-        activity_roll = random.randint(1, 100)
-
-        if activity_roll <= fighter.get("social_media_activity", 50):
-            generated_posts.append(create_post(fighter, "fighter"))
-
-    # Fans post
-    for fan in fans:
-        if "handle" not in fan:
-            fan["handle"] = generate_handle(fan)
-
-        activity_roll = random.randint(1, 100)
-
-        if activity_roll <= fan.get("social_media_activity", 30):
-            generated_posts.append(create_post(fan, "fan"))
-
-    return generated_posts
-
-
-# =========================
-# TRENDING SYSTEM
-# =========================
-
-def get_trending_posts():
-    sorted_posts = sorted(
-        cagewire_feed,
-        key=lambda x: x["likes"] + x["comments"] + x["shares"],
-        reverse=True
-    )
-
-    return sorted_posts[:20]
-
-
-# =========================
-# FEED VIEW
-# =========================
+# ==========================
+# FEED
+# ==========================
 
 def get_feed():
     return sorted(
@@ -160,3 +169,14 @@ def get_feed():
         key=lambda x: x["timestamp"],
         reverse=True
     )
+
+# ==========================
+# TRENDING
+# ==========================
+
+def get_trending_posts():
+    return sorted(
+        cagewire_feed,
+        key=lambda x: x["likes"] + x["comments"] + x["shares"],
+        reverse=True
+    )[:10]
