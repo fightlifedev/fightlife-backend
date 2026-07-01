@@ -292,19 +292,18 @@ def run_fight(player_name: str):
         "fighter": player,
         "opponent": opponent
     }
-
 @router.post("/advance-day")
 def advance_day():
 
     for fighter in players.values():
 
         # Fight camp progression
-       if fighter["fight_camp"]["active"] == True:
-    fighter["fight_camp"]["days_left"] -= 1
+        if fighter["fight_camp"]["active"] == True:
+            fighter["fight_camp"]["days_left"] -= 1
 
-    if fighter["scheduled_fight"]["accepted"] == True:
-        fighter["scheduled_fight"]["days_until_fight"] -= 1
-        
+            if fighter["scheduled_fight"]["accepted"] == True:
+                fighter["scheduled_fight"]["days_until_fight"] -= 1
+
             # Training gains
             fighter["stats"]["boxing"] += 1
             fighter["stats"]["wrestling"] += 1
@@ -329,7 +328,7 @@ def advance_day():
         "message": "1 day advanced",
         "players": players
     }
-
+    
 @router.get("/fighter-stats/{player_name}")
 def fighter_stats(player_name: str):
     if player_name not in players:
