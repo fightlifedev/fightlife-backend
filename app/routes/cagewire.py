@@ -5,10 +5,11 @@ from app.systems.cagewire_engine import (
     get_trending_posts
 )
 
-router = APIRouter(prefix="/cagewire", tags=["CageWire"])
+router = APIRouter(
+    prefix="/cagewire",
+    tags=["CageWire"]
+)
 
-
-# Generate new CageWire cycle
 @router.post("/generate-post")
 def generate_posts():
     posts = run_cagewire_cycle()
@@ -18,16 +19,12 @@ def generate_posts():
         "posts": posts
     }
 
-
-# Full feed
 @router.get("/feed")
 def fetch_feed():
     return {
         "feed": get_feed()
     }
 
-
-# Trending posts
 @router.get("/trending")
 def fetch_trending():
     return {
