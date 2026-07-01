@@ -1,6 +1,4 @@
 from fastapi import APIRouter
-from app.database import players_collection
-from app.systems.training import train_player
 import random
 
 router = APIRouter()
@@ -111,16 +109,25 @@ players = {
     }
 }
 
+
 offers = {}
+
+
+def level_check(player):
+    while player["xp"] >= player["level"] * 100:
+        player["xp"] -= player["level"] * 100
+        player["level"] += 1
+
 
 def simulate_fight(player, opponent):
     player_score = sum(player["stats"].values()) + random.randint(1, 20)
     opponent_score = sum(opponent["stats"].values()) + random.randint(1, 20)
 
-    winner = player["name"] if player_score >= opponent_score else opponent["name"]
+    winner = player if player_score >= opponent_score else opponent
+    loser = opponent if winner == player else player
+
     method = random.choice(["Decision", "Submission", "TKO", "KO"])
     round_ended = random.randint(1, 5)
-    damage = random.randint(10, 50)
 
     xp_rewards = {
         "Decision": 15,
@@ -129,110 +136,72 @@ def simulate_fight(player, opponent):
         "KO": 25
     }
 
-    winner_player = player if winner == player["name"] else opponent
-    loser_player = opponent if winner == player["name"] else player
+    winner["xp"] += xp_rewards[method]
+    loser["xp"] += 5
 
-    winner_player["xp"] += xp_rewards[method]
-    loser_player["xp"] += 5
+    level_check(winner)
+    level_check(loser)
 
-    if winner_player["xp"] >= 50:
-        winner_player["level"] += 1
-        winner_player["xp"] -= 50
+    winner["record"]["wins"] += 1
+    loser["record"]["losses"] += 1
 
-    if loser_player["xp"] >= 50:
-        loser_player["level"] += 1
-        loser_player["xp"] -= 50
+    damage = random.randint(0, 50)
 
-    winner_player["record"]["wins"] += 1
-    loser_player["record"]["losses"] += 1
+    if damage >= 35:
+        loser["injured"] = True
+        loser["injury_days_left"] = random.randint(7, 30)
+
+    winner["fatigue"] += 15
+    loser["fatigue"] += 20
+
+    winner["recovering"] = True
+    loser["recovering"] = True
+    winner["recovery_days_left"] = random.randint(3, 7)
+    loser["recovery_days_left"] = random.randint(5, 10)
+
+    winner["fight_camp"] = {
+        "active": False,
+        "opponent": None,
+        "days_left": 0,
+        "weight_cut": None,
+        "peak": False
+    }
+
+    loser["fight_camp"] = {
+        "active": False,
+        "opponent": None,
+        "days_left": 0,
+        "weight_cut": None,
+        "peak": False
+    }
+
+    winner["scheduled_fight"]["completed"] = True
+    loser["scheduled_fight"]["completed"] = True
 
     return {
-        "winner": winner,
+        "winner": winner["name"],
+        "loser": loser["name"],
         "method": method,
-        "round": round_ended,
-        "damage": damage,
-        "player_score": player_score,
-        "opponent_score": opponent_score
+        "round": round_ended
     }
 
 
-@router.post("/players")
-def create_player(player: dict):
-    result = players_collection.insert_one(player)
-    return {
-        "message": "Player created",
-        "player_id": str(result.inserted_id)
-    }
-
-
-@router.get("/players")
-def get_players():
-    return players
-
-
-@router.post("/train/{player_name}/{skill}")
-def train(player_name: str, skill: str):
-    if player_name not in players:
-        return {"error": "Player not found"}
-
+@router.post("/book-fight/{player_name}/{opponent_name}/{days}")
+def book_fight(player_name: str, opponent_name: str, days: int):
     player = players[player_name]
+    opponent = players[opponent_name]
 
-    if skill not in player["stats"]:
-        return {"error": "Skill not found"}
+    purse = random.randint(10000, 25000)
 
-    updated_player = train_player(player, skill)
-    players[player_name] = updated_player
-
-    return updated_player
-
-
-@router.post("/start-camp/{player_name}/{opponent}/{days}")
-def start_camp(player_name: str, opponent: str, days: int):
-    if player_name not in players:
-        return {"error": "Player not found"}
-
-    if opponent not in players:
-        return {"error": "Opponent not found"}
-
-    players[player_name]["fight_camp"] = {
-        "active": True,
-        "opponent": opponent,
-        "days_left": days,
-        "weight_cut": "medium",
-        "peak": False
-    }
-
-    players[opponent]["fight_camp"] = {
-        "active": True,
-        "opponent": player_name,
-        "days_left": days,
-        "weight_cut": "medium",
-        "peak": False
-    }
-
-    return {
-        "fighter": players[player_name],
-        "opponent": players[opponent]
-    }
-
-
-@router.post("/book-fight/{player_name}/{opponent}/{days}/{purse}")
-def book_fight(player_name: str, opponent: str, days: int, purse: int):
-    if player_name not in players:
-        return {"error": "Player not found"}
-
-    if opponent not in players:
-        return {"error": "Opponent not found"}
-
-    players[player_name]["scheduled_fight"] = {
-        "opponent": opponent,
+    player["scheduled_fight"] = {
+        "opponent": opponent_name,
         "days_until_fight": days,
         "purse": purse,
         "accepted": True,
         "completed": False
     }
 
-    players[opponent]["scheduled_fight"] = {
+    opponent["scheduled_fight"] = {
         "opponent": player_name,
         "days_until_fight": days,
         "purse": purse,
@@ -242,57 +211,36 @@ def book_fight(player_name: str, opponent: str, days: int, purse: int):
 
     return {
         "message": "Fight booked successfully",
-        "fighter": players[player_name],
-        "opponent": players[opponent]
+        "fighter": player,
+        "opponent": opponent
     }
 
-@router.post("/simulate-fight/{player_name}")
+
+@router.post("/start-camp/{player_name}")
+def start_camp(player_name: str):
+    fighter = players[player_name]
+
+    if fighter["scheduled_fight"]["opponent"]:
+        days_until_fight = fighter["scheduled_fight"]["days_until_fight"]
+
+        fighter["fight_camp"] = {
+            "active": True,
+            "opponent": fighter["scheduled_fight"]["opponent"],
+            "days_left": days_until_fight,
+            "weight_cut": "medium",
+            "peak": False
+        }
+
+    return fighter
+
+
+@router.post("/run-fight/{player_name}")
 def run_fight(player_name: str):
-    if player_name not in players:
-        return {"error": "Player not found"}
-
     player = players[player_name]
-
-    if not player["scheduled_fight"]["opponent"]:
-        return {"error": "No fight scheduled"}
-
     opponent_name = player["scheduled_fight"]["opponent"]
-
-    if opponent_name not in players:
-        return {"error": "Opponent not found"}
-
     opponent = players[opponent_name]
 
     result = simulate_fight(player, opponent)
-
-    # Update records
-    if result["winner"] == player["name"]:
-        player["record"]["wins"] += 1
-        opponent["record"]["losses"] += 1
-    else:
-        player["record"]["losses"] += 1
-        opponent["record"]["wins"] += 1
-
-    # Recovery starts
-    player["recovering"] = True
-    player["recovery_days_left"] = random.randint(3, 10)
-
-    # reset player
-    player["fight_camp"] = {
-        "active": False,
-        "opponent": None,
-        "days_left": 0,
-        "weight_cut": None,
-        "peak": False
-    }
-
-    player["scheduled_fight"] = {
-        "opponent": None,
-        "days_until_fight": 0,
-        "purse": 0,
-        "accepted": False,
-        "completed": True
-    }
 
     return {
         "message": f"{player_name} completed fight",
@@ -300,56 +248,44 @@ def run_fight(player_name: str):
         "fighter": player,
         "opponent": opponent
     }
+
+
 @router.post("/advance-day")
 def advance_day():
     for player_name, fighter in players.items():
 
-        # AI decides when to start camp (users start manually)
- if not fighter["is_user"] and fighter["scheduled_fight"]["opponent"] and not fighter["fight_camp"]["active"]:
-    if fighter["scheduled_fight"]["days_until_fight"] > 15:
-        if random.randint(1, 100) <= 15:
-            fighter["fight_camp"]["active"] = True
+        # AI auto starts camp
+        if (
+            not fighter["is_user"]
+            and fighter["scheduled_fight"]["opponent"]
+            and not fighter["fight_camp"]["active"]
+        ):
+            if fighter["scheduled_fight"]["days_until_fight"] > 14:
+                if random.randint(1, 100) <= 15:
+                    fighter["fight_camp"]["active"] = True
+                    fighter["fight_camp"]["days_left"] = fighter["scheduled_fight"]["days_until_fight"]
+                    fighter["fight_camp"]["opponent"] = fighter["scheduled_fight"]["opponent"]
 
-            max_days = fighter["scheduled_fight"]["days_until_fight"]
-
-            if max_days > 7:
-                fighter["fight_camp"]["days_left"] = random.randint(7, max_days)
-            else:
-                fighter["fight_camp"]["days_left"] = max_days
-
-            fighter["fight_camp"]["opponent"] = fighter["scheduled_fight"]["opponent"]
-            
-        # Fight camp countdown
+        # Fight camp progression
         if fighter["fight_camp"]["active"]:
             fighter["fight_camp"]["days_left"] -= 1
 
-            # Fighter hits peak in final week
-            if fighter["fight_camp"]["days_left"] <= 7:
-                fighter["fight_camp"]["peak"] = True
-
-            # Training gains during camp
             fighter["stats"]["boxing"] += 1
             fighter["stats"]["wrestling"] += 1
             fighter["stats"]["cardio"] += 1
             fighter["fatigue"] += 5
 
-            # Camp ends naturally
-            if fighter["fight_camp"]["days_left"] <= 0:
-                fighter["fight_camp"]["active"] = False
-                fighter["fight_camp"]["days_left"] = 0
-                fighter["fight_camp"]["opponent"] = None
-                fighter["fight_camp"]["peak"] = False
+            if fighter["fight_camp"]["days_left"] <= 7:
+                fighter["fight_camp"]["peak"] = True
 
-        # Fight countdown (separate from camp)
+        # Fight countdown
         if fighter["scheduled_fight"]["accepted"]:
             fighter["scheduled_fight"]["days_until_fight"] -= 1
 
-        # Auto-run fight when fight day arrives
-        if (
-            fighter["scheduled_fight"]["days_until_fight"] <= 0
-            and fighter["scheduled_fight"]["opponent"]
-        ):
-            run_fight(player_name)
+        # Auto fight trigger
+        if fighter["scheduled_fight"]["days_until_fight"] <= 0:
+            if fighter["scheduled_fight"]["opponent"]:
+                run_fight(player_name)
 
         # Injury recovery
         if fighter["injured"]:
@@ -359,8 +295,8 @@ def advance_day():
                 fighter["injured"] = False
                 fighter["injury_days_left"] = 0
 
-        # Fight recovery
-        if fighter.get("recovering"):
+        # General recovery
+        if fighter["recovering"]:
             fighter["recovery_days_left"] -= 1
 
             if fighter["recovery_days_left"] <= 0:
@@ -370,8 +306,9 @@ def advance_day():
     return {
         "message": "1 day advanced",
         "players": players
-        
     }
+
+
 @router.post("/advance-week")
 def advance_week():
     for _ in range(7):
@@ -389,42 +326,3 @@ def fighter_stats(player_name: str):
         return {"error": "Player not found"}
 
     return players[player_name]
-    
-@router.post("/offer-contract/{player_name}")
-def offer_contract(player_name: str):
-    if player_name not in players:
-        return {"error": "Player not found"}
-
-    fighter = players[player_name]
-
-    # Offer only if fighter has no fights yet
-    if fighter["record"]["wins"] == 0 and fighter["record"]["losses"] == 0:
-        contract_value = random.randint(20000, 100000)
-
-        offers[player_name] = {
-            "organization": "UFC",
-            "value": contract_value,
-            "accepted": False
-        }
-
-        return {
-            "message": f"{player_name} received a contract offer",
-            "offer": offers[player_name]
-        }
-
-    return {"message": "No contract offers available"}
-    
-@router.post("/accept-contract/{player_name}")
-def accept_contract(player_name: str):
-    if player_name not in offers:
-        return {"error": "No contract offer found"}
-
-    offers[player_name]["accepted"] = True
-
-    players[player_name]["organization"] = offers[player_name]["organization"]
-    players[player_name]["money"] += offers[player_name]["value"]
-
-    return {
-        "message": f"{player_name} signed with {offers[player_name]['organization']}",
-        "fighter": players[player_name]
-    }
