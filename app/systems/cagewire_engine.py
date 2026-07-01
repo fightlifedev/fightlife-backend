@@ -1,119 +1,127 @@
 import random
 from datetime import datetime, timedelta
 
+from app.entities.world_entities import world_entities
+from app.systems.buzz_engine import (
+    init_entity,
+    get_buzz,
+    update_buzz,
+    get_trending_entities
+)
+from app.systems.event_engine import generate_world_event
+from app.systems.social_graph import init_social, get_social
+
+
 cagewire_feed = []
 
-# ==========================
-# ENTITY DATABASE (TEST)
-# ==========================
-
-entities = [
-    {
-        "first_name": "Conor",
-        "last_name": "McGregor",
-        "type": "fighter",
-        "followers": 46000000,
-        "verified": True,
-        "activity": 0.85,
-        "emotion": "confident"
-    },
-    {
-        "first_name": "Islam",
-        "last_name": "Makhachev",
-        "type": "fighter",
-        "followers": 9200000,
-        "verified": True,
-        "activity": 0.65,
-        "emotion": "focused"
-    },
-    {
-        "first_name": "Dana",
-        "last_name": "White",
-        "type": "promoter",
-        "followers": 8100000,
-        "verified": True,
-        "activity": 0.40,
-        "emotion": "neutral"
-    },
-    {
-        "first_name": "Jake",
-        "last_name": "MMAFan",
-        "type": "fan",
-        "followers": 843,
-        "verified": False,
-        "activity": 0.75,
-        "emotion": "excited"
-    }
-]
 
 # ==========================
 # POST TEMPLATES
 # ==========================
 
 fighter_posts = [
-    "Big fight news soon.",
-    "Nobody can stop me.",
     "Camp going crazy.",
-    "Respect to my opponent.",
-    "Focused."
+    "Locked in.",
+    "New fight news soon.",
+    "Nobody can stop me.",
+    "Focused.",
+    "Grinding every day.",
+    "Respect to my opponent."
 ]
 
 fan_posts = [
-    "That fight was insane.",
+    "That fight was wild.",
     "He got robbed.",
-    "Future champ right there.",
-    "Best fighter alive."
+    "Future champ.",
+    "This division crazy.",
+    "I called it."
 ]
 
-promoter_posts = [
-    "Huge announcement soon.",
-    "Contracts being finalized.",
-    "Big things coming."
+general_posts = [
+    "Big news soon.",
+    "What a day.",
+    "Life moving fast.",
+    "Staying focused."
 ]
+
 
 # ==========================
-# HANDLE GENERATOR
+# HANDLE SYSTEM
 # ==========================
 
 def generate_handle(entity):
-    return f"@{entity['first_name'].lower()}.{entity['last_name'].lower()}"
+    if "handle" in entity and entity["handle"]:
+        return entity["handle"]
+
+    name = entity.get("name", "unknown")
+    clean = name.lower().replace(" ", "")
+
+    options = [
+        f"@{clean}",
+        f"@real{clean}",
+        f"@{clean}{random.randint(1,999)}"
+    ]
+
+    entity["handle"] = random.choice(options)
+
+    return entity["handle"]
+
 
 # ==========================
-# TIMESTAMP ENGINE
+# DYNAMIC TIME
 # ==========================
 
 def generate_dynamic_timestamp():
     minutes_ago = random.randint(1, 1440)
     return str(datetime.now() - timedelta(minutes=minutes_ago))
 
+
+# ==========================
+# SHOULD POST
+# ==========================
+
+def should_post(entity):
+    buzz_info = get_buzz(entity)
+
+    base_chance = 5
+    buzz_bonus = buzz_info.get("buzz", 0) // 5
+    momentum_bonus = max(0, buzz_info.get("momentum", 0))
+
+    final_chance = min(90, base_chance + buzz_bonus + momentum_bonus)
+
+    roll = random.randint(1, 100)
+
+    return roll <= final_chance
+
+
 # ==========================
 # ENGAGEMENT ENGINE
 # ==========================
 
-def generate_engagement(followers):
-    likes = random.randint(
-        max(5, int(followers * 0.001)),
-        max(50, int(followers * 0.03))
-    )
+def generate_engagement(entity):
+    social = get_social(entity)
+    buzz_info = get_buzz(entity)
+
+    followers = social["followers"]
+    buzz = buzz_info["buzz"]
+
+    base_reach = max(10, followers * 0.01)
+    buzz_multiplier = 1 + (buzz / 100)
+
+    likes = int(base_reach * buzz_multiplier * random.uniform(0.5, 2.5))
 
     comments = random.randint(
-        max(1, int(likes * 0.05)),
-        max(2, int(likes * 0.25))
+        max(1, likes // 20),
+        max(2, likes // 5)
     )
 
     shares = random.randint(
-        max(1, int(likes * 0.01)),
-        max(2, int(likes * 0.10))
+        max(1, comments // 5),
+        max(2, comments // 2)
     )
 
     return likes, comments, shares
 
-# ==========================
-# SHOULD POST?
-# ==========================
-
-def should_post(entity):
-    return random.random() < entity["activity"]
 
 # ==========================
 # CREATE POST
@@ -122,42 +130,57 @@ def should_post(entity):
 def create_post(entity):
     if entity["type"] == "fighter":
         content = random.choice(fighter_posts)
+
     elif entity["type"] == "fan":
         content = random.choice(fan_posts)
-    else:
-        content = random.choice(promoter_posts)
 
-    likes, comments, shares = generate_engagement(entity["followers"])
+    else:
+        content = random.choice(general_posts)
+
+    likes, comments, shares = generate_engagement(entity)
 
     post = {
-        "author": f"{entity['first_name']} {entity['last_name']}",
-        "handle": generate_handle(entity),
-        "verified": entity["verified"],
-        "followers": entity["followers"],
+        "author": entity["name"],
+        "handle": entity["handle"],
+        "verified": entity.get("verified", False),
         "content": content,
         "likes": likes,
         "comments": comments,
         "shares": shares,
         "timestamp": generate_dynamic_timestamp(),
-        "category": entity["type"]
+        "buzz": get_buzz(entity)["buzz"],
+        "recent_event": get_buzz(entity)["recent_event"]
     }
 
     cagewire_feed.append(post)
 
     return post
 
+
 # ==========================
 # MAIN CYCLE
 # ==========================
 
 def run_cagewire_cycle():
-    new_posts = []
+    generated_posts = []
 
-    for entity in entities:
+    # random world event may happen
+    generate_world_event(world_entities)
+
+    for entity in world_entities:
+        generate_handle(entity)
+
+        init_entity(entity)
+        init_social(entity)
+        update_buzz(entity)
+
         if should_post(entity):
-            new_posts.append(create_post(entity))
+            generated_posts.append(
+                create_post(entity)
+            )
 
-    return new_posts
+    return generated_posts
+
 
 # ==========================
 # FEED
@@ -170,13 +193,25 @@ def get_feed():
         reverse=True
     )
 
+
 # ==========================
 # TRENDING
 # ==========================
 
 def get_trending_posts():
-    return sorted(
-        cagewire_feed,
-        key=lambda x: x["likes"] + x["comments"] + x["shares"],
+    trending_entities = get_trending_entities(world_entities)
+
+    trending_posts = []
+
+    for entity in trending_entities:
+        for post in cagewire_feed:
+            if post["handle"] == entity["handle"]:
+                trending_posts.append(post)
+
+    trending_posts = sorted(
+        trending_posts,
+        key=lambda x: x["buzz"],
         reverse=True
-    )[:10]
+    )
+
+    return trending_posts[:10]
