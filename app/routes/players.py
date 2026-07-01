@@ -220,6 +220,14 @@ players[player_name]["fight_camp"] = {
     "peak": False
 }
 
+players[player_name]["fight_camp"] = {
+    "active": True,
+    "opponent": opponent,
+    "days_left": days,
+    "weight_cut": "medium",
+    "peak": False
+}
+
 players[opponent]["fight_camp"] = {
     "active": True,
     "opponent": player_name,
@@ -227,10 +235,6 @@ players[opponent]["fight_camp"] = {
     "weight_cut": "medium",
     "peak": False
 }
-    return {
-        "fighter": players[player_name],
-        "opponent": players[opponent]
-    }
     
 @router.post("/simulate-fight/{player_name}")
 def run_fight(player_name: str):
