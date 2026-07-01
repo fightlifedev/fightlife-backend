@@ -33,7 +33,7 @@ players = {
         },
         "scheduled_fight": {
             "opponent": "Malik Brunson",
-            "days_until_fight": 0,
+            "days_until_fight": 4,
             "purse": 15000,
             "accepted": True,
             "completed": False
@@ -47,6 +47,7 @@ players = {
         "reputation": 20,
         "money": 10000
     },
+
     "Malik Brunson": {
         "name": "Malik Brunson",
         "age": 21,
@@ -87,19 +88,20 @@ players = {
         },
         "reputation": 12,
         "money": 5000
-         },
-         }
+    }
+}
+
 
 def simulate_fight(player, opponent):
-    ...
-    player["scheduled_fight"]["completed"] = True
-    player["fight_camp"]["active"] = False
-    player["fight_camp"]["opponent"] = None
-    player["fight_camp"]["days_left"] = 0
+    player_score = sum(player["stats"].values()) + random.randint(1, 20)
+    opponent_score = sum(opponent["stats"].values()) + random.randint(1, 20)
 
-    # XP REWARDS
+    winner = player["name"] if player_score >= opponent_score else opponent["name"]
+    method = random.choice(["Decision", "Submission", "TKO", "KO"])
+    round_ended = random.randint(1, 5)
+    damage = random.randint(10, 50)
+
     xp_rewards = {
-        "Split Decision": 12,
         "Decision": 15,
         "Submission": 20,
         "TKO": 22,
@@ -120,6 +122,9 @@ def simulate_fight(player, opponent):
         loser_player["level"] += 1
         loser_player["xp"] -= 50
 
+    winner_player["record"]["wins"] += 1
+    loser_player["record"]["losses"] += 1
+
     return {
         "winner": winner,
         "method": method,
@@ -128,6 +133,7 @@ def simulate_fight(player, opponent):
         "player_score": player_score,
         "opponent_score": opponent_score
     }
+
 
 @router.post("/players")
 def create_player(player: dict):
@@ -188,16 +194,15 @@ def start_camp(player_name: str, opponent: str, days: int):
         "opponent": players[opponent]
     }
 
+
 @router.post("/book-fight/{player_name}/{opponent}/{days}/{purse}")
 def book_fight(player_name: str, opponent: str, days: int, purse: int):
-
     if player_name not in players:
         return {"error": "Player not found"}
 
     if opponent not in players:
         return {"error": "Opponent not found"}
 
-    # Schedule for player
     players[player_name]["scheduled_fight"] = {
         "opponent": opponent,
         "days_until_fight": days,
@@ -206,7 +211,6 @@ def book_fight(player_name: str, opponent: str, days: int, purse: int):
         "completed": False
     }
 
-    # Schedule for opponent
     players[opponent]["scheduled_fight"] = {
         "opponent": player_name,
         "days_until_fight": days,
@@ -215,30 +219,21 @@ def book_fight(player_name: str, opponent: str, days: int, purse: int):
         "completed": False
     }
 
-    # Put player in camp
-    players[player_name]["fight_camp"] = {
-        "active": True,
-        "opponent": opponent,
-        "days_left": days,
-        "weight_cut": "medium",
-        "peak": False
-    }
+    players[player_name]["fight_camp"]["active"] = True
+    players[player_name]["fight_camp"]["days_left"] = days
+    players[player_name]["fight_camp"]["opponent"] = opponent
 
-    # Put opponent in camp
-    players[opponent]["fight_camp"] = {
-        "active": True,
-        "opponent": player_name,
-        "days_left": days,
-        "weight_cut": "medium",
-        "peak": False
-    }
+    players[opponent]["fight_camp"]["active"] = True
+    players[opponent]["fight_camp"]["days_left"] = days
+    players[opponent]["fight_camp"]["opponent"] = player_name
 
     return {
         "message": "Fight booked successfully",
         "fighter": players[player_name],
         "opponent": players[opponent]
     }
-    
+
+
 @router.post("/simulate-fight/{player_name}")
 def run_fight(player_name: str):
     if player_name not in players:
@@ -258,11 +253,14 @@ def run_fight(player_name: str):
 
     result = simulate_fight(player, opponent)
 
-    # RESET PLAYER AFTER FIGHT
-    player["fight_camp"]["active"] = False
-    player["fight_camp"]["opponent"] = None
-    player["fight_camp"]["days_left"] = 0
-    player["fight_camp"]["peak"] = False
+    # reset player
+    player["fight_camp"] = {
+        "active": False,
+        "opponent": None,
+        "days_left": 0,
+        "weight_cut": None,
+        "peak": False
+    }
 
     player["scheduled_fight"] = {
         "opponent": None,
@@ -272,11 +270,14 @@ def run_fight(player_name: str):
         "completed": True
     }
 
-    # RESET OPPONENT AFTER FIGHT
-    opponent["fight_camp"]["active"] = False
-    opponent["fight_camp"]["opponent"] = None
-    opponent["fight_camp"]["days_left"] = 0
-    opponent["fight_camp"]["peak"] = False
+    # reset opponent
+    opponent["fight_camp"] = {
+        "active": False,
+        "opponent": None,
+        "days_left": 0,
+        "weight_cut": None,
+        "peak": False
+    }
 
     opponent["scheduled_fight"] = {
         "opponent": None,
@@ -292,33 +293,28 @@ def run_fight(player_name: str):
         "fighter": player,
         "opponent": opponent
     }
-    
+
+
 @router.post("/advance-day")
 def advance_day():
-
     for fighter in players.values():
 
-        # Fight camp progression
-        if fighter["fight_camp"]["active"] == True:
+        if fighter["fight_camp"]["active"]:
             fighter["fight_camp"]["days_left"] -= 1
 
-            if fighter["scheduled_fight"]["accepted"] == True:
-                fighter["scheduled_fight"]["days_until_fight"] -= 1
+        if fighter["scheduled_fight"]["accepted"]:
+            fighter["scheduled_fight"]["days_until_fight"] -= 1
 
-            # Training gains
-            fighter["stats"]["boxing"] += 1
-            fighter["stats"]["wrestling"] += 1
-            fighter["stats"]["cardio"] += 1
+        fighter["stats"]["boxing"] += 1
+        fighter["stats"]["wrestling"] += 1
+        fighter["stats"]["cardio"] += 1
 
-            # Fatigue rises
-            fighter["fatigue"] += 5
+        fighter["fatigue"] += 5
 
-            # Peak week trigger
-            if fighter["fight_camp"]["days_left"] <= 7:
-                fighter["fight_camp"]["peak"] = True
+        if fighter["fight_camp"]["days_left"] <= 7:
+            fighter["fight_camp"]["peak"] = True
 
-        # Injury recovery
-        if fighter["injured"] == True:
+        if fighter["injured"]:
             fighter["injury_days_left"] -= 1
 
             if fighter["injury_days_left"] <= 0:
@@ -329,7 +325,9 @@ def advance_day():
         "message": "1 day advanced",
         "players": players
     }
-    @router.post("/advance-week")
+
+
+@router.post("/advance-week")
 def advance_week():
     for _ in range(7):
         advance_day()
@@ -338,6 +336,8 @@ def advance_week():
         "message": "7 days advanced",
         "players": players
     }
+
+
 @router.get("/fighter-stats/{player_name}")
 def fighter_stats(player_name: str):
     if player_name not in players:
