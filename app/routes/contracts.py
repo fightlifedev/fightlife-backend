@@ -4,7 +4,6 @@ from app.routes.players import players
 
 router = APIRouter()
 
-
 # =========================
 # PROMOTIONS DATABASE
 # =========================
@@ -39,19 +38,17 @@ promotions = {
     }
 }
 
-
 # =========================
 # ACTIVE CONTRACT OFFERS
 # =========================
 
 contract_offers = {}
 
-
 # =========================
 # SCOUTING SYSTEM
 # =========================
 
-def evaluate_fighter_for_contract(player_name):
+def evaluate_fighter_for_contract(player_name: str):
     fighter = players[player_name]
 
     if fighter["career"]["contracted"]:
@@ -91,7 +88,6 @@ def evaluate_fighter_for_contract(player_name):
 
     return offer
 
-
 # =========================
 # ROUTES
 # =========================
@@ -117,7 +113,9 @@ def evaluate_contract(player_name: str):
 @router.post("/accept-contract/{player_name}")
 def accept_contract(player_name: str):
     if player_name not in contract_offers:
-        return {"error": "No contract offer available"}
+        return {
+            "error": "No contract offer available"
+        }
 
     fighter = players[player_name]
     offer = contract_offers[player_name]
@@ -143,32 +141,37 @@ def accept_contract(player_name: str):
 
 @router.post("/decline-contract/{player_name}")
 def decline_contract(player_name: str):
+
     if players[player_name]["career"]["contracted"]:
         return {
-        "message": f"{player_name} is already signed and cannot decline."
-    }
+            "message": f"{player_name} is already signed and cannot decline."
+        }
 
-        if player_name not in contract_offers:
-            return {
-                "message": "No active contract offer found."
-    }
-fighter = players[player_name]
-offer = contract_offers[player_name]
+    if player_name not in contract_offers:
+        return {
+            "message": "No active contract offer found."
+        }
 
-fighter["memory"].append(
+    fighter = players[player_name]
+    offer = contract_offers[player_name]
+
+    fighter["memory"].append(
         f"Declined contract from {offer['promotion']}"
-)
+    )
 
-del contract_offers[player_name]
+    del contract_offers[player_name]
 
-return {
-    "message": f"{player_name} declined the contract"
+    return {
+        "message": f"{player_name} declined the contract"
     }
 
 
 @router.get("/contract-offers/{player_name}")
 def get_contract_offer(player_name: str):
+
     if player_name not in contract_offers:
-        return {"message": "No active contract offers"}
+        return {
+            "message": "No active contract offers"
+        }
 
     return contract_offers[player_name]
