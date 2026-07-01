@@ -5,7 +5,7 @@ from app.systems.cagewire_engine import (
     get_trending_posts
 )
 
-router = APIRouter()
+router = APIRouter(prefix="/cagewire", tags=["CageWire"])
 
 
 # Generate new CageWire cycle
