@@ -369,3 +369,18 @@ def offer_contract(player_name: str):
         }
 
     return {"message": "No contract offers available"}
+    
+@router.post("/accept-contract/{player_name}")
+def accept_contract(player_name: str):
+    if player_name not in offers:
+        return {"error": "No contract offer found"}
+
+    offers[player_name]["accepted"] = True
+
+    players[player_name]["organization"] = offers[player_name]["organization"]
+    players[player_name]["money"] += offers[player_name]["value"]
+
+    return {
+        "message": f"{player_name} signed with {offers[player_name]['organization']}",
+        "fighter": players[player_name]
+    }
