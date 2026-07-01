@@ -300,7 +300,7 @@ def advance_day():
     for fighter in players.values():
 
         # Fight camp countdown
-        if fighter["fight_cam p"]["active"]:
+        if fighter["fight_camp"]["active"]:
             fighter["fight_camp"]["days_left"] -= 1
 
             if fighter["fight_camp"]["days_left"] <= 7:
