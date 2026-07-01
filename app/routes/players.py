@@ -236,7 +236,6 @@ def book_fight(player_name: str, opponent: str, days: int, purse: int):
         "opponent": players[opponent]
     }
 
-
 @router.post("/simulate-fight/{player_name}")
 def run_fight(player_name: str):
     if player_name not in players:
@@ -255,15 +254,14 @@ def run_fight(player_name: str):
     opponent = players[opponent_name]
 
     result = simulate_fight(player, opponent)
-result = simulate_fight(player, opponent)
 
-# Update records
-if result["winner"] == player["name"]:
-    player["record"]["wins"] += 1
-    opponent["record"]["losses"] += 1
-else:
-    player["record"]["losses"] += 1
-    opponent["record"]["wins"] += 1
+    # Update records
+    if result["winner"] == player["name"]:
+        player["record"]["wins"] += 1
+        opponent["record"]["losses"] += 1
+    else:
+        player["record"]["losses"] += 1
+        opponent["record"]["wins"] += 1
 
     # Recovery starts
     player["recovering"] = True
@@ -279,23 +277,6 @@ else:
     }
 
     player["scheduled_fight"] = {
-        "opponent": None,
-        "days_until_fight": 0,
-        "purse": 0,
-        "accepted": False,
-        "completed": True
-    }
-
-    # reset opponent
-    opponent["fight_camp"] = {
-        "active": False,
-        "opponent": None,
-        "days_left": 0,
-        "weight_cut": None,
-        "peak": False
-    }
-
-    opponent["scheduled_fight"] = {
         "opponent": None,
         "days_until_fight": 0,
         "purse": 0,
