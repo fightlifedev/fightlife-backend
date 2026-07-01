@@ -91,6 +91,7 @@ players = {
     }
 }
 
+offers = {}
 
 def simulate_fight(player, opponent):
     player_score = sum(player["stats"].values()) + random.randint(1, 20)
@@ -344,3 +345,27 @@ def fighter_stats(player_name: str):
         return {"error": "Player not found"}
 
     return players[player_name]
+    
+@router.post("/offer-contract/{player_name}")
+def offer_contract(player_name: str):
+    if player_name not in players:
+        return {"error": "Player not found"}
+
+    fighter = players[player_name]
+
+    # Offer only if fighter has no fights yet
+    if fighter["record"]["wins"] == 0 and fighter["record"]["losses"] == 0:
+        contract_value = random.randint(20000, 100000)
+
+        offers[player_name] = {
+            "organization": "UFC",
+            "value": contract_value,
+            "accepted": False
+        }
+
+        return {
+            "message": f"{player_name} received a contract offer",
+            "offer": offers[player_name]
+        }
+
+    return {"message": "No contract offers available"}
