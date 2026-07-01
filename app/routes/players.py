@@ -199,16 +199,16 @@ def book_fight(player_name: str, opponent: str, days: int, purse: int):
 
 players[player_name]["scheduled_fight"] = {
         "opponent": None,
-        "days_until_fight": days,
-        "purse": purse,
+        "days_until_fight": 0,
+        "purse": 0,
         "accepted": True,
         "completed": False
 }
 
 players[opponent]["scheduled_fight"] = {
         "opponent": player_name,
-        "days_until_fight": days,
-        "purse": purse,
+        "days_until_fight": 0,
+        "purse": 0,
         "accepted": True,
         "completed": False
 }
