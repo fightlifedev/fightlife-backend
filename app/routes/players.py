@@ -82,6 +82,8 @@ players = {
         },
         "injured": False,
         "injury_days_left": 0,
+        "recovering": False,
+        "recovery_days_left": 0,
         "record": {
             "wins": 0,
             "losses": 0
@@ -253,6 +255,19 @@ def run_fight(player_name: str):
     opponent = players[opponent_name]
 
     result = simulate_fight(player, opponent)
+result = simulate_fight(player, opponent)
+
+# Update records
+if result["winner"] == player["name"]:
+    player["record"]["wins"] += 1
+    opponent["record"]["losses"] += 1
+else:
+    player["record"]["losses"] += 1
+    opponent["record"]["wins"] += 1
+
+    # Recovery starts
+    player["recovering"] = True
+    player["recovery_days_left"] = random.randint(3, 10)
 
     # reset player
     player["fight_camp"] = {
