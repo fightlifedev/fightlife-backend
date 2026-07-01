@@ -82,8 +82,12 @@ def create_post(author, category):
     else:
         content = random.choice(fan_templates)
 
+    # Make sure handle exists
+    if "handle" not in author:
+        author["handle"] = generate_handle(author)
+
     post = {
-        "author": f"{author['first_name']} {author['last_name']}",
+        "author": author["name"],
         "handle": author["handle"],
         "verified": author.get("verified", False),
         "followers": author.get("followers", 0),
