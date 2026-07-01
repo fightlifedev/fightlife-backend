@@ -174,7 +174,8 @@ if winner_player["xp"] >= 50:
 if loser_player["xp"] >= 50:
     loser_player["level"] += 1
     loser_player["xp"] -= 50
-    return {
+    
+return {
         "winner": winner,
         "method": method,
         "round": round_ended,
