@@ -47,7 +47,6 @@ players = {
         "reputation": 20,
         "money": 10000
     },
-
     "Malik Brunson": {
         "name": "Malik Brunson",
         "age": 21,
