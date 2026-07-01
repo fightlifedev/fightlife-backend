@@ -212,7 +212,21 @@ def book_fight(player_name: str, opponent: str, days: int, purse: int):
         "accepted": True,
         "completed": False
     }
+players[player_name]["fight_camp"] = {
+    "active": True,
+    "opponent": opponent,
+    "days_left": days,
+    "weight_cut": "medium",
+    "peak": False
+}
 
+players[opponent]["fight_camp"] = {
+    "active": True,
+    "opponent": player_name,
+    "days_left": days,
+    "weight_cut": "medium",
+    "peak": False
+}
     return {
         "fighter": players[player_name],
         "opponent": players[opponent]
