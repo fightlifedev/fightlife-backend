@@ -187,7 +187,7 @@ def start_camp(player_name: str, opponent: str, days: int):
         "fighter": players[player_name],
         "opponent": players[opponent]
     }
-    
+
 @router.post("/book-fight/{player_name}/{opponent}/{days}/{purse}")
 def book_fight(player_name: str, opponent: str, days: int, purse: int):
 
@@ -197,6 +197,7 @@ def book_fight(player_name: str, opponent: str, days: int, purse: int):
     if opponent not in players:
         return {"error": "Opponent not found"}
 
+    # Schedule for player
     players[player_name]["scheduled_fight"] = {
         "opponent": opponent,
         "days_until_fight": days,
@@ -205,6 +206,7 @@ def book_fight(player_name: str, opponent: str, days: int, purse: int):
         "completed": False
     }
 
+    # Schedule for opponent
     players[opponent]["scheduled_fight"] = {
         "opponent": player_name,
         "days_until_fight": days,
@@ -213,6 +215,7 @@ def book_fight(player_name: str, opponent: str, days: int, purse: int):
         "completed": False
     }
 
+    # Put player in camp
     players[player_name]["fight_camp"] = {
         "active": True,
         "opponent": opponent,
@@ -221,6 +224,7 @@ def book_fight(player_name: str, opponent: str, days: int, purse: int):
         "peak": False
     }
 
+    # Put opponent in camp
     players[opponent]["fight_camp"] = {
         "active": True,
         "opponent": player_name,
@@ -230,6 +234,7 @@ def book_fight(player_name: str, opponent: str, days: int, purse: int):
     }
 
     return {
+        "message": "Fight booked successfully",
         "fighter": players[player_name],
         "opponent": players[opponent]
     }
