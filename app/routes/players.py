@@ -305,7 +305,7 @@ def advance_day():
     for player_name, fighter in players.items():
 
         # AI decides when to start camp (users start manually)
-       if not fighter["is_user"] and fighter["scheduled_fight"]["opponent"] and not fighter["fight_camp"]["active"]:
+ if not fighter["is_user"] and fighter["scheduled_fight"]["opponent"] and not fighter["fight_camp"]["active"]:
     if fighter["scheduled_fight"]["days_until_fight"] > 15:
         if random.randint(1, 100) <= 15:
             fighter["fight_camp"]["active"] = True
