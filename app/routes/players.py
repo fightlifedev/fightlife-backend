@@ -109,18 +109,43 @@ def simulate_fight(player, opponent):
         + random.randint(1, 20)
     )
 
+    score_diff = abs(player_score - opponent_score)
+
     if player_score > opponent_score:
         winner = player["name"]
+        loser = opponent
         player["record"]["wins"] += 1
         opponent["record"]["losses"] += 1
         player["money"] += player["scheduled_fight"]["purse"]
         player["reputation"] += 5
     else:
         winner = opponent["name"]
+        loser = player
         opponent["record"]["wins"] += 1
         player["record"]["losses"] += 1
         opponent["money"] += player["scheduled_fight"]["purse"]
         opponent["reputation"] += 5
+
+    # DETERMINE FIGHT OUTCOME
+    if score_diff >= 25:
+        method = random.choice(["KO", "TKO"])
+        round_ended = random.randint(1, 2)
+        damage = "High"
+
+    elif score_diff >= 15:
+        method = random.choice(["Submission", "TKO"])
+        round_ended = random.randint(2, 3)
+        damage = "Medium"
+
+    elif score_diff >= 8:
+        method = "Decision"
+        round_ended = 3
+        damage = "Low"
+
+    else:
+        method = "Split Decision"
+        round_ended = 3
+        damage = "Very Low"
 
     player["scheduled_fight"]["completed"] = True
     player["fight_camp"]["active"] = False
@@ -129,6 +154,9 @@ def simulate_fight(player, opponent):
 
     return {
         "winner": winner,
+        "method": method,
+        "round": round_ended,
+        "damage": damage,
         "player_score": player_score,
         "opponent_score": opponent_score
     }
