@@ -297,7 +297,7 @@ def run_fight(player_name: str):
 
 @router.post("/advance-day")
 def advance_day():
-    for fighter in players.values():
+    for player_name, fighter in players.items():
 
         # Fight camp countdown
         if fighter["fight_camp"]["active"]:
@@ -310,15 +310,26 @@ def advance_day():
         if fighter["scheduled_fight"]["accepted"]:
             fighter["scheduled_fight"]["days_until_fight"] -= 1
 
-            # Training during camp
+            # Camp training progression
             fighter["stats"]["boxing"] += 1
             fighter["stats"]["wrestling"] += 1
             fighter["stats"]["cardio"] += 1
             fighter["fatigue"] += 5
 
-            # Fight day reached
+            # Auto-run fight when timer hits 0
             if fighter["scheduled_fight"]["days_until_fight"] <= 0:
-                run_fight(fighter["name"])
+                run_fight(player_name)
+
+                # Clear camp after fight
+                fighter["fight_camp"]["active"] = False
+                fighter["fight_camp"]["opponent"] = None
+                fighter["fight_camp"]["days_left"] = 0
+                fighter["fight_camp"]["weight_cut"] = None
+                fighter["fight_camp"]["peak"] = False
+
+                # Mark fight completed
+                fighter["scheduled_fight"]["completed"] = True
+                fighter["scheduled_fight"]["days_until_fight"] = 0
 
         # Injury recovery
         if fighter["injured"]:
