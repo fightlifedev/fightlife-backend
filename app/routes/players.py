@@ -300,60 +300,74 @@ def run_fight(player_name: str):
         "fighter": player,
         "opponent": opponent
     }
-
 @router.post("/advance-day")
 def advance_day():
     for player_name, fighter in players.items():
 
-       # AI decides when to start camp
-    if not fighter["is_user"] and fighter["scheduled_fight"]["opponent"] and not fighter["fight_camp"]["active"]:
-    if fighter["scheduled_fight"]["days_until_fight"] > 15:
-    if random.randint(1, 100) <= 15:
-       fighter["fight_camp"]["active"] = True
-       fighter["fight_camp"]["days_left"] = random.randint(14, 42)
-       fighter["fight_camp"]["opponent"] = fighter["scheduled_fight"]["opponent"]
-            
+        # AI decides when to start camp (users start manually)
+        if (
+            not fighter["is_user"]
+            and fighter["scheduled_fight"]["opponent"]
+            and not fighter["fight_camp"]["active"]
+        ):
+            if fighter["scheduled_fight"]["days_until_fight"] > 15:
+                if random.randint(1, 100) <= 15:
+                    fighter["fight_camp"]["active"] = True
+                    fighter["fight_camp"]["days_left"] = random.randint(14, 42)
+                    fighter["fight_camp"]["opponent"] = fighter["scheduled_fight"]["opponent"]
+
         # Fight camp countdown
-    if fighter["fight_camp"]["active"]:
-       fighter["fight_camp"]["days_left"] -= 1
+        if fighter["fight_camp"]["active"]:
+            fighter["fight_camp"]["days_left"] -= 1
 
-    if fighter["fight_camp"]["days_left"] <= 7:
-       fighter["fight_camp"]["peak"] = True
+            # Fighter hits peak in final week
+            if fighter["fight_camp"]["days_left"] <= 7:
+                fighter["fight_camp"]["peak"] = True
 
-        # Camp training progression
-       fighter["stats"]["boxing"] += 1
-       fighter["stats"]["wrestling"] += 1
-       fighter["stats"]["cardio"] += 1
-       fighter["fatigue"] += 5
+            # Training gains during camp
+            fighter["stats"]["boxing"] += 1
+            fighter["stats"]["wrestling"] += 1
+            fighter["stats"]["cardio"] += 1
+            fighter["fatigue"] += 5
 
-        # Scheduled fight countdown
-    if fighter["scheduled_fight"]["accepted"]:
-       fighter["scheduled_fight"]["days_until_fight"] -= 1
+            # Camp ends naturally
+            if fighter["fight_camp"]["days_left"] <= 0:
+                fighter["fight_camp"]["active"] = False
+                fighter["fight_camp"]["days_left"] = 0
+                fighter["fight_camp"]["opponent"] = None
+                fighter["fight_camp"]["peak"] = False
 
-        # Auto-run fight when timer hits 0
-    if fighter["scheduled_fight"]["days_until_fight"] <= 0:
-    if fighter["scheduled_fight"]["opponent"]:
-       run_fight(player_name)
+        # Fight countdown (separate from camp)
+        if fighter["scheduled_fight"]["accepted"]:
+            fighter["scheduled_fight"]["days_until_fight"] -= 1
+
+        # Auto-run fight when fight day arrives
+        if (
+            fighter["scheduled_fight"]["days_until_fight"] <= 0
+            and fighter["scheduled_fight"]["opponent"]
+        ):
+            run_fight(player_name)
 
         # Injury recovery
-    if fighter["injured"]:
-       fighter["injury_days_left"] -= 1
+        if fighter["injured"]:
+            fighter["injury_days_left"] -= 1
 
-    if fighter["injury_days_left"] <= 0:
-       fighter["injured"] = False
-       fighter["injury_days_left"] = 0
+            if fighter["injury_days_left"] <= 0:
+                fighter["injured"] = False
+                fighter["injury_days_left"] = 0
 
-        # Recovery countdown
-    if fighter.get("recovering"):
-       fighter["recovery_days_left"] -= 1
+        # Fight recovery
+        if fighter.get("recovering"):
+            fighter["recovery_days_left"] -= 1
 
-    if fighter["recovery_days_left"] <= 0:
-       fighter["recovering"] = False
-       fighter["recovery_days_left"] = 0
+            if fighter["recovery_days_left"] <= 0:
+                fighter["recovering"] = False
+                fighter["recovery_days_left"] = 0
 
     return {
-       "message": "1 day advanced",
-       "players": players
+        "message": "1 day advanced",
+        "players": players
+        
     }
 @router.post("/advance-week")
 def advance_week():
