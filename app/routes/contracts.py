@@ -143,13 +143,19 @@ def accept_contract(player_name: str):
 
 @router.post("/decline-contract/{player_name}")
 def decline_contract(player_name: str):
-    if player_name not in contract_offers:
-        return {"error": "No contract offer available"}
+if players[player_name]["career"]["contracted"]:
+    return {
+        "message": f"{player_name} is already signed and cannot decline."
+    }
 
-    fighter = players[player_name]
-    offer = contract_offers[player_name]
+if player_name not in contract_offers:
+    return {
+        "message": "No active contract offer found."
+    }
+fighter = players[player_name]
+offer = contract_offers[player_name]
 
-    fighter["memory"].append(
+fighter["memory"].append(
         f"Declined contract from {offer['promotion']}"
     )
 
