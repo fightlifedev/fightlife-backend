@@ -187,46 +187,52 @@ def start_camp(player_name: str, opponent: str, days: int):
         "fighter": players[player_name],
         "opponent": players[opponent]
     }
-
-
+    
 @router.post("/book-fight/{player_name}/{opponent}/{days}/{purse}")
 def book_fight(player_name: str, opponent: str, days: int, purse: int):
+
     if player_name not in players:
         return {"error": "Player not found"}
 
     if opponent not in players:
         return {"error": "Opponent not found"}
 
-players[player_name]["scheduled_fight"] = {
+    players[player_name]["scheduled_fight"] = {
         "opponent": opponent,
         "days_until_fight": days,
         "purse": purse,
         "accepted": True,
         "completed": False
-}
+    }
 
-players[opponent]["scheduled_fight"] = {
+    players[opponent]["scheduled_fight"] = {
         "opponent": player_name,
         "days_until_fight": days,
         "purse": purse,
         "accepted": True,
         "completed": False
-}
-players[player_name]["fight_camp"] = {
-    "active": True,
-    "opponent": opponent,
-    "days_left": days,
-    "weight_cut": "medium",
-    "peak": False
-}
+    }
 
-players[opponent]["fight_camp"] = {
-    "active": True,
-    "opponent": player_name,
-    "days_left": days,
-    "weight_cut": "medium",
-    "peak": False
-}
+    players[player_name]["fight_camp"] = {
+        "active": True,
+        "opponent": opponent,
+        "days_left": days,
+        "weight_cut": "medium",
+        "peak": False
+    }
+
+    players[opponent]["fight_camp"] = {
+        "active": True,
+        "opponent": player_name,
+        "days_left": days,
+        "weight_cut": "medium",
+        "peak": False
+    }
+
+    return {
+        "fighter": players[player_name],
+        "opponent": players[opponent]
+    }
     
 @router.post("/simulate-fight/{player_name}")
 def run_fight(player_name: str):
