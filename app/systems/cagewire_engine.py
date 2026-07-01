@@ -46,8 +46,16 @@ fan_templates = [
 # =========================
 
 def generate_handle(entity):
-    first = entity["first_name"].lower()
-    last = entity["last_name"].lower()
+    # Keep existing handle if already set
+    if "handle" in entity and entity["handle"]:
+        return entity["handle"]
+
+    # Use full name instead of first_name/last_name
+    full_name = entity.get("name", "Unknown User")
+    parts = full_name.split()
+
+    first = parts[0].lower() if len(parts) > 0 else "user"
+    last = parts[-1].lower() if len(parts) > 1 else str(random.randint(100, 999))
 
     choices = [
         f"{first}{last}",
@@ -55,10 +63,14 @@ def generate_handle(entity):
         f"{first}.{last}",
         f"{last}{random.randint(1,999)}",
         f"{first}{random.randint(10,9999)}",
+        f"real{first}",
+        f"the{first}{last}"
     ]
 
-    return "@" + random.choice(choices)
+    handle = "@" + random.choice(choices)
 
+    entity["handle"] = handle
+    return handle
 
 # =========================
 # POST CREATOR
