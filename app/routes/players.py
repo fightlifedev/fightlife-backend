@@ -198,7 +198,7 @@ def book_fight(player_name: str, opponent: str, days: int, purse: int):
         return {"error": "Opponent not found"}
 
 players[player_name]["scheduled_fight"] = {
-        "opponent": opponent,
+        "opponent": None,
         "days_until_fight": days,
         "purse": purse,
         "accepted": True,
