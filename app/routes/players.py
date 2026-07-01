@@ -3,27 +3,133 @@ import random
 
 router = APIRouter()
 
+
+# =========================
+# PLAYER DATABASE (V2)
+# =========================
+
 players = {
     "Devon Duffee": {
         "is_user": True,
-        "name": "Devon Elias Duffee",
-        "age": 19,
-        "career": "MMA Fighter",
-        "division": "Light Heavyweight",
-        "archetype": "Pressure Boxer",
-        "xp": 23,
-        "fatigue": 10,
-        "level": 1,
-        "potential": 95,
-        "morale": 100,
-        "hometown": "Detroit",
 
-        "stats": {
-            "boxing": 83,
-            "wrestling": 80,
-            "power": 88,
-            "cardio": 77
+        "identity": {
+            "full_name": "Devon Elias Duffee",
+            "nickname": "The Construct",
+            "age": 19,
+            "hometown": "Detroit",
+            "nationality": "USA"
         },
+
+        "life": {
+            "career_path": "Combat Sports",
+            "status": "Amateur",
+            "education": "High School Graduate",
+            "relationships": [],
+            "social_circle": []
+        },
+
+        "career": {
+            "industry": "Combat Sports",
+            "league": None,
+            "contracted": False,
+            "champion": False,
+
+            "amateur_record": {
+                "wins": 18,
+                "losses": 1
+            },
+
+            "pro_record": {
+                "wins": 0,
+                "losses": 0
+            },
+
+            "accolades": [],
+            "rank": None
+        },
+
+        "finances": {
+            "cash": 0,
+            "bank": 0,
+            "debt": 0,
+            "income_streams": [],
+            "assets": []
+        },
+
+        "reputation": {
+            "global": 18,
+            "industry": 45,
+            "local": 90,
+            "hype": 80
+        },
+
+        "attributes": {
+            "potential": 95,
+            "morale": 100,
+            "fatigue": 10,
+            "discipline": 88,
+            "confidence": 92
+        },
+
+        "skills": {
+            "physical": {
+                "speed": 90,
+                "power": 88,
+                "endurance": 87
+            },
+
+            "combat": {
+                "boxing": 83,
+                "wrestling": 80,
+                "cardio": 77
+            },
+
+            "mental": {
+                "fight_iq": 85,
+                "adaptability": 82,
+                "killer_instinct": 90
+            },
+
+            "social": {
+                "charisma": 78,
+                "media_skill": 81
+            }
+        },
+
+        "progression": {
+            "xp": 23,
+            "level": 1
+        },
+
+        "health": {
+            "injured": False,
+            "injury_days_left": 0,
+            "recovering": False,
+            "recovery_days_left": 0
+        },
+
+        "personality": {
+            "discipline": 88,
+            "aggression": 75,
+            "loyalty": 60,
+            "greed": 45,
+            "risk_tolerance": 80
+        },
+
+        "emotions": {
+            "anger": 10,
+            "fear": 5,
+            "confidence": 90,
+            "motivation": 95
+        },
+
+        "memory": [],
+
+        "goals": [
+            "Become UFC champion",
+            "Become a millionaire",
+            "Build legacy"
+        ],
 
         "fight_camp": {
             "active": False,
@@ -39,43 +145,130 @@ players = {
             "purse": 0,
             "accepted": False,
             "completed": False
-        },
-
-        "injured": False,
-        "injury_days_left": 0,
-        "recovering": False,
-        "recovery_days_left": 0,
-
-        "record": {
-            "wins": 0,
-            "losses": 0
-        },
-
-        "reputation": 12,
-        "organization": "Independent",
-        "money": 0
+        }
     },
 
     "Malik Brunson": {
         "is_user": False,
-        "name": "Malik Brunson",
-        "age": 27,
-        "career": "MMA Fighter",
-        "division": "Middleweight",
-        "archetype": "Wrestler",
-        "xp": 40,
-        "fatigue": 5,
-        "level": 2,
-        "potential": 82,
-        "morale": 100,
-        "hometown": "Las Vegas",
 
-        "stats": {
-            "boxing": 75,
-            "wrestling": 88,
-            "power": 79,
-            "cardio": 84
+        "identity": {
+            "full_name": "Malik Brunson",
+            "nickname": "Napalm",
+            "age": 19,
+            "hometown": "Detroit",
+            "nationality": "USA"
         },
+
+        "life": {
+            "career_path": "Combat Sports",
+            "status": "Amateur",
+            "education": "High School Graduate",
+            "relationships": [],
+            "social_circle": []
+        },
+
+        "career": {
+            "industry": "Combat Sports",
+            "league": None,
+            "contracted": False,
+            "champion": False,
+
+            "amateur_record": {
+                "wins": 11,
+                "losses": 5
+            },
+
+            "pro_record": {
+                "wins": 0,
+                "losses": 0
+            },
+
+            "accolades": [],
+            "rank": None
+        },
+
+        "finances": {
+            "cash": 0,
+            "bank": 0,
+            "debt": 0,
+            "income_streams": [],
+            "assets": []
+        },
+
+        "reputation": {
+            "global": 5,
+            "industry": 15,
+            "local": 30,
+            "hype": 20
+        },
+
+        "attributes": {
+            "potential": 78,
+            "morale": 100,
+            "fatigue": 5,
+            "discipline": 70,
+            "confidence": 65
+        },
+
+        "skills": {
+            "physical": {
+                "speed": 72,
+                "power": 75,
+                "endurance": 70
+            },
+
+            "combat": {
+                "boxing": 72,
+                "wrestling": 76,
+                "cardio": 70
+            },
+
+            "mental": {
+                "fight_iq": 67,
+                "adaptability": 64,
+                "killer_instinct": 68
+            },
+
+            "social": {
+                "charisma": 52,
+                "media_skill": 40
+            }
+        },
+
+        "progression": {
+            "xp": 8,
+            "level": 1
+        },
+
+        "health": {
+            "injured": False,
+            "injury_days_left": 0,
+            "recovering": False,
+            "recovery_days_left": 0
+        },
+
+        "personality": {
+            "discipline": 70,
+            "aggression": 82,
+            "loyalty": 55,
+            "greed": 60,
+            "risk_tolerance": 65
+        },
+
+        "emotions": {
+            "anger": 20,
+            "fear": 15,
+            "confidence": 65,
+            "motivation": 80
+        },
+
+        "memory": [],
+
+        "goals": [
+            "Turn pro",
+            "Get signed",
+            "Prove himself"
+        ],
 
         "fight_camp": {
             "active": False,
@@ -91,37 +284,41 @@ players = {
             "purse": 0,
             "accepted": False,
             "completed": False
-        },
-
-        "injured": False,
-        "injury_days_left": 0,
-        "recovering": False,
-        "recovery_days_left": 0,
-
-        "record": {
-            "wins": 4,
-            "losses": 1
-        },
-
-        "reputation": 58,
-        "organization": "UFC",
-        "money": 185000
+        }
     }
 }
 
 
-offers = {}
+# =========================
+# UTILITIES
+# =========================
+
+def add_memory(player, event):
+    player["memory"].append(event)
 
 
 def level_check(player):
-    while player["xp"] >= player["level"] * 100:
-        player["xp"] -= player["level"] * 100
-        player["level"] += 1
+    while player["progression"]["xp"] >= player["progression"]["level"] * 100:
+        player["progression"]["xp"] -= player["progression"]["level"] * 100
+        player["progression"]["level"] += 1
 
+
+# =========================
+# FIGHT SYSTEM
+# =========================
 
 def simulate_fight(player, opponent):
-    player_score = sum(player["stats"].values()) + random.randint(1, 20)
-    opponent_score = sum(opponent["stats"].values()) + random.randint(1, 20)
+    player_score = (
+        sum(player["skills"]["combat"].values())
+        + sum(player["skills"]["physical"].values())
+        + random.randint(1, 20)
+    )
+
+    opponent_score = (
+        sum(opponent["skills"]["combat"].values())
+        + sum(opponent["skills"]["physical"].values())
+        + random.randint(1, 20)
+    )
 
     winner = player if player_score >= opponent_score else opponent
     loser = opponent if winner == player else player
@@ -129,69 +326,49 @@ def simulate_fight(player, opponent):
     method = random.choice(["Decision", "Submission", "TKO", "KO"])
     round_ended = random.randint(1, 5)
 
-    xp_rewards = {
-        "Decision": 15,
-        "Submission": 20,
-        "TKO": 22,
-        "KO": 25
-    }
+    winner["career"]["pro_record"]["wins"] += 1
+    loser["career"]["pro_record"]["losses"] += 1
 
-    winner["xp"] += xp_rewards[method]
-    loser["xp"] += 5
+    winner["progression"]["xp"] += 25
+    loser["progression"]["xp"] += 10
 
     level_check(winner)
     level_check(loser)
 
-    winner["record"]["wins"] += 1
-    loser["record"]["losses"] += 1
+    winner["attributes"]["fatigue"] += 15
+    loser["attributes"]["fatigue"] += 20
 
-    damage = random.randint(0, 50)
+    winner["health"]["recovering"] = True
+    loser["health"]["recovering"] = True
 
-    if damage >= 35:
-        loser["injured"] = True
-        loser["injury_days_left"] = random.randint(7, 30)
+    winner["health"]["recovery_days_left"] = random.randint(3, 7)
+    loser["health"]["recovery_days_left"] = random.randint(5, 10)
 
-    winner["fatigue"] += 15
-    loser["fatigue"] += 20
+    if random.randint(1, 100) <= 20:
+        loser["health"]["injured"] = True
+        loser["health"]["injury_days_left"] = random.randint(7, 30)
 
-    winner["recovering"] = True
-    loser["recovering"] = True
-    winner["recovery_days_left"] = random.randint(3, 7)
-    loser["recovery_days_left"] = random.randint(5, 10)
-
-    winner["fight_camp"] = {
-        "active": False,
-        "opponent": None,
-        "days_left": 0,
-        "weight_cut": None,
-        "peak": False
-    }
-
-    loser["fight_camp"] = {
-        "active": False,
-        "opponent": None,
-        "days_left": 0,
-        "weight_cut": None,
-        "peak": False
-    }
-
-    winner["scheduled_fight"]["completed"] = True
-    loser["scheduled_fight"]["completed"] = True
+    add_memory(winner, f"Defeated {loser['identity']['full_name']} by {method}")
+    add_memory(loser, f"Lost to {winner['identity']['full_name']} by {method}")
 
     return {
-        "winner": winner["name"],
-        "loser": loser["name"],
+        "winner": winner["identity"]["full_name"],
+        "loser": loser["identity"]["full_name"],
         "method": method,
         "round": round_ended
     }
 
+
+# =========================
+# ROUTES
+# =========================
 
 @router.post("/book-fight/{player_name}/{opponent_name}/{days}")
 def book_fight(player_name: str, opponent_name: str, days: int):
     player = players[player_name]
     opponent = players[opponent_name]
 
-    purse = random.randint(10000, 25000)
+    purse = random.randint(5000, 25000)
 
     player["scheduled_fight"] = {
         "opponent": opponent_name,
@@ -210,7 +387,7 @@ def book_fight(player_name: str, opponent_name: str, days: int):
     }
 
     return {
-        "message": "Fight booked successfully",
+        "message": "Fight booked",
         "fighter": player,
         "opponent": opponent
     }
@@ -221,15 +398,9 @@ def start_camp(player_name: str):
     fighter = players[player_name]
 
     if fighter["scheduled_fight"]["opponent"]:
-        days_until_fight = fighter["scheduled_fight"]["days_until_fight"]
-
-        fighter["fight_camp"] = {
-            "active": True,
-            "opponent": fighter["scheduled_fight"]["opponent"],
-            "days_left": days_until_fight,
-            "weight_cut": "medium",
-            "peak": False
-        }
+        fighter["fight_camp"]["active"] = True
+        fighter["fight_camp"]["opponent"] = fighter["scheduled_fight"]["opponent"]
+        fighter["fight_camp"]["days_left"] = fighter["scheduled_fight"]["days_until_fight"]
 
     return fighter
 
@@ -237,17 +408,17 @@ def start_camp(player_name: str):
 @router.post("/run-fight/{player_name}")
 def run_fight(player_name: str):
     player = players[player_name]
-    opponent_name = player["scheduled_fight"]["opponent"]
-    opponent = players[opponent_name]
+    opponent = players[player["scheduled_fight"]["opponent"]]
 
     result = simulate_fight(player, opponent)
 
-    return {
-        "message": f"{player_name} completed fight",
-        "result": result,
-        "fighter": player,
-        "opponent": opponent
-    }
+    player["fight_camp"]["active"] = False
+    opponent["fight_camp"]["active"] = False
+
+    player["scheduled_fight"]["completed"] = True
+    opponent["scheduled_fight"]["completed"] = True
+
+    return result
 
 
 @router.post("/advance-day")
@@ -260,20 +431,19 @@ def advance_day():
             and fighter["scheduled_fight"]["opponent"]
             and not fighter["fight_camp"]["active"]
         ):
-            if fighter["scheduled_fight"]["days_until_fight"] > 14:
-                if random.randint(1, 100) <= 15:
-                    fighter["fight_camp"]["active"] = True
-                    fighter["fight_camp"]["days_left"] = fighter["scheduled_fight"]["days_until_fight"]
-                    fighter["fight_camp"]["opponent"] = fighter["scheduled_fight"]["opponent"]
+            if random.randint(1, 100) <= 15:
+                fighter["fight_camp"]["active"] = True
+                fighter["fight_camp"]["opponent"] = fighter["scheduled_fight"]["opponent"]
+                fighter["fight_camp"]["days_left"] = fighter["scheduled_fight"]["days_until_fight"]
 
-        # Fight camp progression
+        # Camp progression
         if fighter["fight_camp"]["active"]:
             fighter["fight_camp"]["days_left"] -= 1
+            fighter["attributes"]["fatigue"] += 5
 
-            fighter["stats"]["boxing"] += 1
-            fighter["stats"]["wrestling"] += 1
-            fighter["stats"]["cardio"] += 1
-            fighter["fatigue"] += 5
+            fighter["skills"]["combat"]["boxing"] += 1
+            fighter["skills"]["combat"]["wrestling"] += 1
+            fighter["skills"]["combat"]["cardio"] += 1
 
             if fighter["fight_camp"]["days_left"] <= 7:
                 fighter["fight_camp"]["peak"] = True
@@ -282,26 +452,26 @@ def advance_day():
         if fighter["scheduled_fight"]["accepted"]:
             fighter["scheduled_fight"]["days_until_fight"] -= 1
 
-        # Auto fight trigger
-        if fighter["scheduled_fight"]["days_until_fight"] <= 0:
-            if fighter["scheduled_fight"]["opponent"]:
-                run_fight(player_name)
+        # Auto fight
+        if (
+            fighter["scheduled_fight"]["days_until_fight"] <= 0
+            and fighter["scheduled_fight"]["opponent"]
+        ):
+            run_fight(player_name)
 
-        # Injury recovery
-        if fighter["injured"]:
-            fighter["injury_days_left"] -= 1
+        # Recovery
+        if fighter["health"]["recovering"]:
+            fighter["health"]["recovery_days_left"] -= 1
 
-            if fighter["injury_days_left"] <= 0:
-                fighter["injured"] = False
-                fighter["injury_days_left"] = 0
+            if fighter["health"]["recovery_days_left"] <= 0:
+                fighter["health"]["recovering"] = False
 
-        # General recovery
-        if fighter["recovering"]:
-            fighter["recovery_days_left"] -= 1
+        # Injury healing
+        if fighter["health"]["injured"]:
+            fighter["health"]["injury_days_left"] -= 1
 
-            if fighter["recovery_days_left"] <= 0:
-                fighter["recovering"] = False
-                fighter["recovery_days_left"] = 0
+            if fighter["health"]["injury_days_left"] <= 0:
+                fighter["health"]["injured"] = False
 
     return {
         "message": "1 day advanced",
@@ -322,7 +492,4 @@ def advance_week():
 
 @router.get("/fighter-stats/{player_name}")
 def fighter_stats(player_name: str):
-    if player_name not in players:
-        return {"error": "Player not found"}
-
     return players[player_name]
