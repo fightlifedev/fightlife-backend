@@ -5,7 +5,7 @@ import random
 
 router = APIRouter()
 
-players = {,
+players = {
     "Devon Duffee": {
         "name": "Devon Elias Duffee",
         "age": 19,
