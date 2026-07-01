@@ -228,19 +228,19 @@ player["scheduled_fight"] = {
     "completed": True
 }
 
-   # RESET OPPONENT AFTER FIGHT
-   opponent["fight_camp"]["active"] = False
-   opponent["fight_camp"]["opponent"] = None
-   opponent["fight_camp"]["days_left"] = 0
-   opponent["fight_camp"]["peak"] = False
+    # RESET OPPONENT AFTER FIGHT
+opponent["fight_camp"]["active"] = False
+opponent["fight_camp"]["opponent"] = None
+opponent["fight_camp"]["days_left"] = 0
+opponent["fight_camp"]["peak"] = False
 
-   opponent["scheduled_fight"] = {
+opponent["scheduled_fight"] = {
         "opponent": None,
         "days_until_fight": 0,
         "purse": 0,
         "accepted": False,
         "completed": True
-    }
+}
 
     return {
         "message": f"{player_name} completed fight",
