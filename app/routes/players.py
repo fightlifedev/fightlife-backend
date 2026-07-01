@@ -197,21 +197,21 @@ def book_fight(player_name: str, opponent: str, days: int, purse: int):
     if opponent not in players:
         return {"error": "Opponent not found"}
 
-    players[player_name]["scheduled_fight"] = {
+players[player_name]["scheduled_fight"] = {
         "opponent": opponent,
         "days_until_fight": days,
         "purse": purse,
         "accepted": True,
         "completed": False
-    }
+}
 
-    players[opponent]["scheduled_fight"] = {
+players[opponent]["scheduled_fight"] = {
         "opponent": player_name,
         "days_until_fight": days,
         "purse": purse,
         "accepted": True,
         "completed": False
-    }
+}
 players[player_name]["fight_camp"] = {
     "active": True,
     "opponent": opponent,
