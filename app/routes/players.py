@@ -87,7 +87,9 @@ players = {
         },
         "reputation": 12,
         "money": 5000
-    }
+         },
+         }
+
 def simulate_fight(player, opponent):
     ...
     player["scheduled_fight"]["completed"] = True
