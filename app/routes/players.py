@@ -234,7 +234,7 @@ opponent["fight_camp"]["opponent"] = None
 opponent["fight_camp"]["days_left"] = 0
 opponent["fight_camp"]["peak"] = False
 
-    opponent["scheduled_fight"] = {
+opponent["scheduled_fight"] = {
         "opponent": None,
         "days_until_fight": 0,
         "purse": 0,
