@@ -7,6 +7,7 @@ router = APIRouter()
 
 players = {
     "Devon Duffee": {
+        "is_user": True,
         "name": "Devon Elias Duffee",
         "age": 19,
         "career": "MMA Fighter",
@@ -18,54 +19,14 @@ players = {
         "potential": 95,
         "morale": 100,
         "hometown": "Detroit",
+
         "stats": {
             "boxing": 83,
             "wrestling": 80,
             "power": 88,
             "cardio": 77
         },
-        "fight_camp": {
-            "active": True,
-            "opponent": "Malik Brunson",
-            "days_left": 4,
-            "weight_cut": "medium",
-            "peak": False
-        },
-        "scheduled_fight": {
-            "opponent": "Malik Brunson",
-            "days_until_fight": 4,
-            "purse": 15000,
-            "accepted": True,
-            "completed": False
-        },
-        "injured": False,
-        "injury_days_left": 0,
-        "record": {
-            "wins": 0,
-            "losses": 0
-        },
-        "reputation": 20,
-        "money": 10000
-    },
 
-    "Malik Brunson": {
-        "name": "Malik Brunson",
-        "age": 21,
-        "career": "MMA Fighter",
-        "division": "Light Heavyweight",
-        "archetype": "Wrestler",
-        "xp": 0,
-        "fatigue": 0,
-        "level": 1,
-        "potential": 76,
-        "morale": 88,
-        "hometown": "Atlanta",
-        "stats": {
-            "boxing": 78,
-            "wrestling": 76,
-            "power": 82,
-            "cardio": 80
-        },
         "fight_camp": {
             "active": False,
             "opponent": None,
@@ -73,6 +34,7 @@ players = {
             "weight_cut": None,
             "peak": False
         },
+
         "scheduled_fight": {
             "opponent": None,
             "days_until_fight": 0,
@@ -80,16 +42,72 @@ players = {
             "accepted": False,
             "completed": False
         },
+
         "injured": False,
         "injury_days_left": 0,
         "recovering": False,
         "recovery_days_left": 0,
+
         "record": {
             "wins": 0,
             "losses": 0
         },
+
         "reputation": 12,
-        "money": 5000
+        "organization": "Independent",
+        "money": 0
+    },
+
+    "Malik Brunson": {
+        "is_user": False,
+        "name": "Malik Brunson",
+        "age": 27,
+        "career": "MMA Fighter",
+        "division": "Middleweight",
+        "archetype": "Wrestler",
+        "xp": 40,
+        "fatigue": 5,
+        "level": 2,
+        "potential": 82,
+        "morale": 100,
+        "hometown": "Las Vegas",
+
+        "stats": {
+            "boxing": 75,
+            "wrestling": 88,
+            "power": 79,
+            "cardio": 84
+        },
+
+        "fight_camp": {
+            "active": False,
+            "opponent": None,
+            "days_left": 0,
+            "weight_cut": None,
+            "peak": False
+        },
+
+        "scheduled_fight": {
+            "opponent": None,
+            "days_until_fight": 0,
+            "purse": 0,
+            "accepted": False,
+            "completed": False
+        },
+
+        "injured": False,
+        "injury_days_left": 0,
+        "recovering": False,
+        "recovery_days_left": 0,
+
+        "record": {
+            "wins": 4,
+            "losses": 1
+        },
+
+        "reputation": 58,
+        "organization": "UFC",
+        "money": 185000
     }
 }
 
@@ -222,14 +240,6 @@ def book_fight(player_name: str, opponent: str, days: int, purse: int):
         "completed": False
     }
 
-    players[player_name]["fight_camp"]["active"] = True
-    players[player_name]["fight_camp"]["days_left"] = days
-    players[player_name]["fight_camp"]["opponent"] = opponent
-
-    players[opponent]["fight_camp"]["active"] = True
-    players[opponent]["fight_camp"]["days_left"] = days
-    players[opponent]["fight_camp"]["opponent"] = player_name
-
     return {
         "message": "Fight booked successfully",
         "fighter": players[player_name],
@@ -295,6 +305,14 @@ def run_fight(player_name: str):
 def advance_day():
     for player_name, fighter in players.items():
 
+# AI decides when to start camp
+if not fighter["is_user"] and fighter["scheduled_fight"]["opponent"] and not fighter["fight_camp"]["active"]:
+    if fighter["scheduled_fight"]["days_until_fight"] > 15:
+        if random.randint(1, 100) <= 15:
+            fighter["fight_camp"]["active"] = True
+            fighter["fight_camp"]["days_left"] = random.randint(14, 42)
+            fighter["fight_camp"]["opponent"] = fighter["scheduled_fight"]["opponent"]
+            
         # Fight camp countdown
         if fighter["fight_camp"]["active"]:
             fighter["fight_camp"]["days_left"] -= 1
@@ -302,30 +320,20 @@ def advance_day():
             if fighter["fight_camp"]["days_left"] <= 7:
                 fighter["fight_camp"]["peak"] = True
 
-        # Scheduled fight countdown
-        if fighter["scheduled_fight"]["accepted"]:
-            fighter["scheduled_fight"]["days_until_fight"] -= 1
-
             # Camp training progression
             fighter["stats"]["boxing"] += 1
             fighter["stats"]["wrestling"] += 1
             fighter["stats"]["cardio"] += 1
             fighter["fatigue"] += 5
 
-            # Auto-run fight when timer hits 0
-            if fighter["scheduled_fight"]["days_until_fight"] <= 0:
+        # Scheduled fight countdown
+        if fighter["scheduled_fight"]["accepted"]:
+            fighter["scheduled_fight"]["days_until_fight"] -= 1
+
+        # Auto-run fight when timer hits 0
+        if fighter["scheduled_fight"]["days_until_fight"] <= 0:
+            if fighter["scheduled_fight"]["opponent"]:
                 run_fight(player_name)
-
-                # Clear camp after fight
-                fighter["fight_camp"]["active"] = False
-                fighter["fight_camp"]["opponent"] = None
-                fighter["fight_camp"]["days_left"] = 0
-                fighter["fight_camp"]["weight_cut"] = None
-                fighter["fight_camp"]["peak"] = False
-
-                # Mark fight completed
-                fighter["scheduled_fight"]["completed"] = True
-                fighter["scheduled_fight"]["days_until_fight"] = 0
 
         # Injury recovery
         if fighter["injured"]:
@@ -335,11 +343,18 @@ def advance_day():
                 fighter["injured"] = False
                 fighter["injury_days_left"] = 0
 
+        # Recovery countdown
+        if fighter.get("recovering"):
+            fighter["recovery_days_left"] -= 1
+
+            if fighter["recovery_days_left"] <= 0:
+                fighter["recovering"] = False
+                fighter["recovery_days_left"] = 0
+
     return {
         "message": "1 day advanced",
         "players": players
     }
-
 @router.post("/advance-week")
 def advance_week():
     for _ in range(7):
