@@ -151,7 +151,29 @@ def simulate_fight(player, opponent):
     player["fight_camp"]["active"] = False
     player["fight_camp"]["opponent"] = None
     player["fight_camp"]["days_left"] = 0
+# XP REWARDS
+xp_rewards = {
+    "Split Decision": 12,
+    "Decision": 15,
+    "Submission": 20,
+    "TKO": 22,
+    "KO": 25
+}
 
+winner_player = player if winner == player["name"] else opponent
+loser_player = opponent if winner == player["name"] else player
+
+winner_player["xp"] += xp_rewards[method]
+loser_player["xp"] += 5
+
+# LEVEL UP CHECK
+if winner_player["xp"] >= 50:
+    winner_player["level"] += 1
+    winner_player["xp"] -= 50
+
+if loser_player["xp"] >= 50:
+    loser_player["level"] += 1
+    loser_player["xp"] -= 50
     return {
         "winner": winner,
         "method": method,
