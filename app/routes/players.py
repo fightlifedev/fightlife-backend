@@ -328,7 +328,38 @@ def advance_day():
         "message": "1 day advanced",
         "players": players
     }
-    
+    @router.post("/advance-week")
+def advance_week():
+
+    for _ in range(7):
+        for fighter in players.values():
+
+            if fighter["fight_camp"]["active"] == True:
+                fighter["fight_camp"]["days_left"] -= 1
+
+                if fighter["scheduled_fight"]["accepted"] == True:
+                    fighter["scheduled_fight"]["days_until_fight"] -= 1
+
+                fighter["stats"]["boxing"] += 1
+                fighter["stats"]["wrestling"] += 1
+                fighter["stats"]["cardio"] += 1
+
+                fighter["fatigue"] += 5
+
+                if fighter["fight_camp"]["days_left"] <= 7:
+                    fighter["fight_camp"]["peak"] = True
+
+            if fighter["injured"] == True:
+                fighter["injury_days_left"] -= 1
+
+                if fighter["injury_days_left"] <= 0:
+                    fighter["injured"] = False
+                    fighter["injury_days_left"] = 0
+
+    return {
+        "message": "7 days advanced",
+        "players": players
+    }
 @router.get("/fighter-stats/{player_name}")
 def fighter_stats(player_name: str):
     if player_name not in players:
