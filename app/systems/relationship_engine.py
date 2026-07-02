@@ -104,3 +104,15 @@ def generate_relationship_post(entity, all_entities):
         return f"Me and {relation['target']} locked in."
 
     return None
+# ==========================
+# LEGACY COMPATIBILITY
+# ==========================
+
+def should_defend(entity, target):
+    init_relationship(entity)
+    entity_id = ensure_handle(entity)
+
+    if target["handle"] in relationships[entity_id]["friends"]:
+        return True
+
+    return False
