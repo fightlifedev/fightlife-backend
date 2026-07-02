@@ -161,3 +161,11 @@ def run_cagewire_cycle():
     
 def get_feed():
     return run_cagewire_cycle()
+def get_trending_posts():
+    posts = run_cagewire_cycle()
+
+    return sorted(
+        posts,
+        key=lambda x: x.get("likes", 0),
+        reverse=True
+    )
