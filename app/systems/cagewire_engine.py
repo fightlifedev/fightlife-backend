@@ -151,12 +151,13 @@ POST_TEMPLATES = [
 ]
 
 def create_post(entity):
-   if random.randint(1, 100) <= 20:
-    rival = random.choice(world_entities)
-    content = f"@{ensure_handle(rival)} you next."
-else:
-    content = random.choice(POST_TEMPLATES)
-    buzz = random.randint(1, 100)
+    if random.randint(1, 100) <= 20:
+        rival = random.choice(world_entities)
+        content = f"@{ensure_handle(rival)} you next."
+    else:
+        content = random.choice(POST_TEMPLATES)
+
+    buzz = random.randint(1, 100)   # ← move this OUTSIDE else
 
     likes = random.randint(50, 500) * buzz
     comments = random.randint(5, 100) * (buzz // 2)
