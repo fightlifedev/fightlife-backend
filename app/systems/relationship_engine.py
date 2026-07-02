@@ -127,3 +127,13 @@ def should_attack(entity, target):
         return True
 
     return False
+def should_attack(entity, target):
+    init_relationship(entity)
+    entity_id = ensure_handle(entity)
+
+    ensure_handle(target)
+
+    if target["handle"] in relationships[entity_id]["rivals"]:
+        return True
+
+    return False
