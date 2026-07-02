@@ -1,5 +1,5 @@
 import random
-
+from app.systems.comment_engine import generate_comments
 from app.entities.world_entities import world_entities
 from app.systems.relationship_engine import (
     generate_relationship_post,
