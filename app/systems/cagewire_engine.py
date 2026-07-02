@@ -168,7 +168,7 @@ def create_post(entity):
         "shares": shares,
         "buzz": buzz,
         "verified": entity.get("verified", False),
-        "industry": entity.get("industry", "unknown")
+        "industry": entity.get("industry", "unknown"),
         "replies": random.randint(0, comments)
     }
 
