@@ -138,13 +138,38 @@ def generate_content(entity):
     return generate_base_post(entity)
 
 
-def create_post(entity):
-    return {
-        "author": ensure_handle(entity),
-        "name": entity["name"],
-        "content": generate_content(entity)
-    }
+import random
 
+POST_TEMPLATES = [
+    "Blessed beyond measure.",
+    "Life been wild lately.",
+    "Big fight coming soon.",
+    "Legacy over everything.",
+    "Focused. Locked in.",
+    "They doubted me.",
+    "Pressure makes diamonds."
+]
+
+def create_post(entity):
+    content = random.choice(POST_TEMPLATES)
+
+    buzz = random.randint(1, 100)
+
+    likes = random.randint(50, 500) * buzz
+    comments = random.randint(5, 100) * (buzz // 2)
+    shares = random.randint(1, 50) * (buzz // 3)
+
+return {
+    "author": ensure_handle(entity),
+    "name": entity["name"],
+    "content": content,
+    "likes": likes,
+    "comments": comments,
+    "shares": shares,
+    "buzz": buzz,
+    "verified": entity.get("verified", False),
+    "industry": entity.get("industry", "unknown")
+}
 
 def run_cagewire_cycle():
     posts = []
