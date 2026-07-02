@@ -157,10 +157,11 @@ def create_post(entity):
     else:
         content = random.choice(POST_TEMPLATES)
 
-    buzz = random.randint(1, 100)   # ← move this OUTSIDE else
+    buzz = random.randint(1, 100)
 
     likes = random.randint(50, 500) * buzz
     comments = random.randint(5, 100) * (buzz // 2)
+    replies = generate_comments(entity["name"], content)
     shares = random.randint(1, 50) * (buzz // 3)
 
     return {
@@ -173,9 +174,9 @@ def create_post(entity):
         "buzz": buzz,
         "verified": entity.get("verified", False),
         "industry": entity.get("industry", "unknown"),
-        "replies": random.randint(0, comments)
+        "replies": replies
     }
-
+    
 def run_cagewire_cycle():
     posts = []
 
