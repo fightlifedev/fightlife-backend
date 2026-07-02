@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from app.systems.life_engine import LifeEngine
-
+from app.systems.choice_engine import generate_choice, resolve_choice
 router = APIRouter()
 
 # temporary test player
@@ -37,3 +37,12 @@ def train():
 @router.post("/work")
 def work():
     return life.work_job()
+    
+@router.get("/choice")
+def get_choice():
+    return generate_choice()
+
+
+@router.post("/choice/{choice_id}/{decision}")
+def make_choice(choice_id: int, decision: int):
+    return resolve_choice(player, choice_id, decision)
