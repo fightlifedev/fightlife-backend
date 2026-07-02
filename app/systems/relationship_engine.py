@@ -1,22 +1,15 @@
 import random
 
-# Global relationship storage
 relationships = {}
 
 
 def ensure_handle(entity):
-    """
-    Ensures every entity has a unique handle.
-    """
     if "handle" not in entity:
         entity["handle"] = entity["name"].lower().replace(" ", "_")
     return entity["handle"]
 
 
 def initialize_relationship(entity):
-    """
-    Creates relationship buckets for an entity.
-    """
     entity_id = ensure_handle(entity)
 
     if entity_id not in relationships:
@@ -30,15 +23,12 @@ def initialize_relationship(entity):
     return relationships[entity_id]
 
 
-# Legacy compatibility for old imports
+# Legacy compatibility
 def init_relationship(entity):
     return initialize_relationship(entity)
 
 
 def generate_random_relationship(entity, all_entities):
-    """
-    Randomly builds a relationship with another entity.
-    """
     initialize_relationship(entity)
 
     entity_id = ensure_handle(entity)
@@ -72,9 +62,6 @@ def generate_random_relationship(entity, all_entities):
 
 
 def generate_relationship_post(entity, all_entities):
-    """
-    Generates social posts based on relationships.
-    """
     chance = random.randint(1, 100)
 
     if chance > 20:
@@ -101,9 +88,6 @@ def generate_relationship_post(entity, all_entities):
 
 
 def should_attack(entity, target):
-    """
-    Determines if entity should attack/rival target.
-    """
     initialize_relationship(entity)
 
     entity_id = ensure_handle(entity)
@@ -113,9 +97,6 @@ def should_attack(entity, target):
 
 
 def should_support(entity, target):
-    """
-    Determines if entity supports target.
-    """
     initialize_relationship(entity)
 
     entity_id = ensure_handle(entity)
@@ -127,10 +108,19 @@ def should_support(entity, target):
     )
 
 
+def should_defend(entity, target):
+    initialize_relationship(entity)
+
+    entity_id = ensure_handle(entity)
+    target_id = ensure_handle(target)
+
+    return (
+        target_id in relationships[entity_id]["friends"]
+        or target_id in relationships[entity_id]["dating"]
+    )
+
+
 def get_relationships(entity):
-    """
-    Returns all relationships for an entity.
-    """
     entity_id = ensure_handle(entity)
     initialize_relationship(entity)
 
