@@ -16,10 +16,15 @@ from app.systems.personality_engine import (
     should_start_drama,
     should_capitalize_event
 )
-
+from app.systems.relationship_engine import (
+    init_relationship,
+    generate_random_relationship,
+    should_defend,
+    should_attack,
+    should_support
+)
 
 cagewire_feed = []
-
 
 fighter_posts = [
     "Camp going crazy.",
@@ -27,42 +32,51 @@ fighter_posts = [
     "New fight news soon.",
     "Nobody can stop me.",
     "Focused.",
-    "Grinding every day.",
-    "Respect to my opponent."
 ]
 
 fan_posts = [
     "That fight was wild.",
     "He got robbed.",
     "Future champ.",
-    "This division crazy.",
-    "I called it."
+    "This division crazy."
 ]
 
 general_posts = [
     "Big news soon.",
     "What a day.",
-    "Life moving fast.",
-    "Staying focused."
+    "Life moving fast."
+]
+
+defense_posts = [
+    "Y'all need to chill.",
+    "Stop disrespecting him.",
+    "He'll bounce back."
+]
+
+attack_posts = [
+    "Told y'all he was overrated.",
+    "Fraud.",
+    "He ain't built for this."
+]
+
+support_posts = [
+    "Still my favorite.",
+    "Always rocking with you.",
+    "Real ones know."
 ]
 
 drama_posts = [
     "Stop mentioning my name.",
-    "Say it to my face.",
-    "You know what it is.",
-    "I'm not ducking nobody.",
-    "Keep talking."
+    "Keep talking.",
+    "Say it to my face."
 ]
 
 
 def generate_handle(entity):
-    if "handle" in entity and entity["handle"]:
+    if "handle" in entity:
         return entity["handle"]
 
-    name = entity.get("name", "unknown")
-    clean = name.lower().replace(" ", ".")
-
-    entity["handle"] = f"@{clean}"
+    entity["handle"] = "@" + entity["name"].lower().replace(" ", ".")
     return entity["handle"]
 
 
@@ -75,12 +89,9 @@ def should_post(entity):
     buzz = get_buzz(entity)
     posting_weight = get_posting_weight(entity)
 
-    buzz_bonus = buzz.get("buzz", 0) // 4
-    momentum_bonus = max(0, buzz.get("momentum", 0))
+    final_score = posting_weight + buzz.get("buzz", 0)
 
-    final_score = posting_weight + buzz_bonus + momentum_bonus
-
-    return random.randint(1, 150) <= final_score
+    return random.randint(1, 200) <= final_score
 
 
 def generate_engagement(entity):
@@ -90,27 +101,50 @@ def generate_engagement(entity):
     followers = social["followers"]
     buzz_score = buzz["buzz"]
 
-    reach = followers * random.uniform(0.01, 0.08)
+    reach = followers * random.uniform(0.01, 0.06)
 
     if buzz_score > 80:
-        reach *= random.uniform(1.5, 4)
+        reach *= random.uniform(2, 4)
 
     likes = int(reach)
 
     comments = random.randint(
         max(1, int(likes * 0.03)),
-        max(2, int(likes * 0.20))
+        max(2, int(likes * 0.15))
     )
 
     shares = random.randint(
-        max(1, int(comments * 0.10)),
-        max(2, int(comments * 0.50))
+        max(1, int(comments * 0.05)),
+        max(2, int(comments * 0.30))
     )
 
     return likes, comments, shares
 
 
+def generate_relationship_post(entity):
+    target = random.choice(world_entities)
+
+    if target["handle"] == entity["handle"]:
+        return None
+
+    if should_defend(entity, target["handle"]):
+        return random.choice(defense_posts)
+
+    if should_attack(entity, target["handle"]):
+        return random.choice(attack_posts)
+
+    if should_support(entity, target["handle"]):
+        return random.choice(support_posts)
+
+    return None
+
+
 def generate_content(entity):
+    relation_post = generate_relationship_post(entity)
+
+    if relation_post:
+        return relation_post
+
     if should_start_drama(entity):
         return random.choice(drama_posts)
 
@@ -118,13 +152,13 @@ def generate_content(entity):
 
     if recent_event and should_capitalize_event(entity):
         if recent_event == "death":
-            return "Rest easy. Legends never die."
+            return "Rest easy."
 
         if recent_event == "viral":
-            return "Appreciate all the love."
+            return "Appreciate the love."
 
         if recent_event == "scandal":
-            return "Truth always comes out."
+            return "Truth always wins."
 
         if recent_event == "fight_win":
             return "Told y'all."
@@ -132,11 +166,10 @@ def generate_content(entity):
     if entity["type"] == "fighter":
         return random.choice(fighter_posts)
 
-    elif entity["type"] == "fan":
+    if entity["type"] == "fan":
         return random.choice(fan_posts)
 
-    else:
-        return random.choice(general_posts)
+    return random.choice(general_posts)
 
 
 def create_post(entity):
@@ -173,6 +206,10 @@ def run_cagewire_cycle():
         init_entity(entity)
         init_social(entity)
         init_personality(entity)
+        init_relationship(entity)
+
+        if random.randint(1, 100) <= 15:
+            generate_random_relationship(entity, world_entities)
 
         update_buzz(entity)
 
@@ -202,10 +239,8 @@ def get_trending_posts():
             if post["handle"] == entity["handle"]:
                 trending_posts.append(post)
 
-    trending_posts = sorted(
+    return sorted(
         trending_posts,
         key=lambda x: x["buzz"],
         reverse=True
-    )
-
-    return trending_posts[:10]
+    )[:10]
