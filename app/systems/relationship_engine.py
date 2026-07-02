@@ -4,11 +4,22 @@ relationship_data = {}
 
 
 # ==========================
+# SAFE HANDLE GENERATOR
+# ==========================
+
+def ensure_handle(entity):
+    if "handle" not in entity:
+        entity["handle"] = "@" + entity["name"].lower().replace(" ", ".")
+
+    return entity["handle"]
+
+
+# ==========================
 # INIT RELATIONSHIP NETWORK
 # ==========================
 
 def init_relationship(entity):
-    handle = entity["handle"]
+    handle = ensure_handle(entity)
 
     if handle not in relationship_data:
         relationship_data[handle] = {
@@ -30,51 +41,30 @@ def init_relationship(entity):
 # ==========================
 
 def add_relationship(entity_one, entity_two, relation_type):
+    handle_one = ensure_handle(entity_one)
+    handle_two = ensure_handle(entity_two)
+
     init_relationship(entity_one)
     init_relationship(entity_two)
 
-    handle_one = entity_one["handle"]
-    handle_two = entity_two["handle"]
+    relation_map = {
+        "friend": "friends",
+        "rival": "rivals",
+        "family": "family",
+        "romantic": "romantic",
+        "business": "business",
+        "mentor": "mentors",
+        "fan": "fans",
+        "hater": "haters",
+        "obsessed": "obsessed_by",
+        "respect": "respected_by"
+    }
 
-    if relation_type == "friend":
-        if handle_two not in relationship_data[handle_one]["friends"]:
-            relationship_data[handle_one]["friends"].append(handle_two)
+    if relation_type in relation_map:
+        bucket = relation_map[relation_type]
 
-    elif relation_type == "rival":
-        if handle_two not in relationship_data[handle_one]["rivals"]:
-            relationship_data[handle_one]["rivals"].append(handle_two)
-
-    elif relation_type == "family":
-        if handle_two not in relationship_data[handle_one]["family"]:
-            relationship_data[handle_one]["family"].append(handle_two)
-
-    elif relation_type == "romantic":
-        if handle_two not in relationship_data[handle_one]["romantic"]:
-            relationship_data[handle_one]["romantic"].append(handle_two)
-
-    elif relation_type == "business":
-        if handle_two not in relationship_data[handle_one]["business"]:
-            relationship_data[handle_one]["business"].append(handle_two)
-
-    elif relation_type == "mentor":
-        if handle_two not in relationship_data[handle_one]["mentors"]:
-            relationship_data[handle_one]["mentors"].append(handle_two)
-
-    elif relation_type == "fan":
-        if handle_two not in relationship_data[handle_one]["fans"]:
-            relationship_data[handle_one]["fans"].append(handle_two)
-
-    elif relation_type == "hater":
-        if handle_two not in relationship_data[handle_one]["haters"]:
-            relationship_data[handle_one]["haters"].append(handle_two)
-
-    elif relation_type == "obsessed":
-        if handle_two not in relationship_data[handle_one]["obsessed_by"]:
-            relationship_data[handle_one]["obsessed_by"].append(handle_two)
-
-    elif relation_type == "respect":
-        if handle_two not in relationship_data[handle_one]["respected_by"]:
-            relationship_data[handle_one]["respected_by"].append(handle_two)
+        if handle_two not in relationship_data[handle_one][bucket]:
+            relationship_data[handle_one][bucket].append(handle_two)
 
 
 # ==========================
@@ -82,8 +72,9 @@ def add_relationship(entity_one, entity_two, relation_type):
 # ==========================
 
 def get_relationships(entity):
+    handle = ensure_handle(entity)
     init_relationship(entity)
-    return relationship_data[entity["handle"]]
+    return relationship_data[handle]
 
 
 # ==========================
@@ -91,12 +82,16 @@ def get_relationships(entity):
 # ==========================
 
 def generate_random_relationship(entity, all_entities):
+    ensure_handle(entity)
     init_relationship(entity)
 
-    possible_targets = [
-        x for x in all_entities
-        if x["handle"] != entity["handle"]
-    ]
+    possible_targets = []
+
+    for x in all_entities:
+        ensure_handle(x)
+
+        if x["handle"] != entity["handle"]:
+            possible_targets.append(x)
 
     if not possible_targets:
         return None
@@ -130,37 +125,26 @@ def generate_random_relationship(entity, all_entities):
 def should_defend(entity, target_handle):
     relationships = get_relationships(entity)
 
-    if target_handle in relationships["friends"]:
-        return True
-
-    if target_handle in relationships["family"]:
-        return True
-
-    if target_handle in relationships["romantic"]:
-        return True
-
-    return False
+    return (
+        target_handle in relationships["friends"]
+        or target_handle in relationships["family"]
+        or target_handle in relationships["romantic"]
+    )
 
 
 def should_attack(entity, target_handle):
     relationships = get_relationships(entity)
 
-    if target_handle in relationships["rivals"]:
-        return True
-
-    if target_handle in relationships["haters"]:
-        return True
-
-    return False
+    return (
+        target_handle in relationships["rivals"]
+        or target_handle in relationships["haters"]
+    )
 
 
 def should_support(entity, target_handle):
     relationships = get_relationships(entity)
 
-    if target_handle in relationships["fans"]:
-        return True
-
-    if target_handle in relationships["respected_by"]:
-        return True
-
-    return False
+    return (
+        target_handle in relationships["fans"]
+        or target_handle in relationships["respected_by"]
+    )
