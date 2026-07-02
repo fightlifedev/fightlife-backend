@@ -158,3 +158,6 @@ def run_cagewire_cycle():
         posts.append(create_post(entity))
 
     return posts
+    
+def get_feed():
+    return run_cagewire_cycle()
