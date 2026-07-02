@@ -181,12 +181,13 @@ def run_cagewire_cycle():
 
     for entity in active_entities:
         posts.append(create_post(entity))
-posts = sorted(posts, key=lambda x: x["buzz"], reverse=True)
 
-return {
-    "message": "CageWire cycle generated",
-    "posts": posts
-}
+    posts = sorted(posts, key=lambda x: x["buzz"], reverse=True)
+
+    return {
+        "message": "CageWire cycle generated",
+        "posts": posts
+    }
     
 def get_feed():
     return run_cagewire_cycle()
