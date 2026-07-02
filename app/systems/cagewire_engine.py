@@ -1,246 +1,160 @@
 import random
-from datetime import datetime, timedelta
 
 from app.entities.world_entities import world_entities
-from app.systems.buzz_engine import (
-    init_entity,
-    get_buzz,
-    update_buzz,
-    get_trending_entities
-)
-from app.systems.event_engine import generate_world_event
-from app.systems.social_graph import init_social, get_social
-from app.systems.personality_engine import (
-    init_personality,
-    get_posting_weight,
-    should_start_drama,
-    should_capitalize_event
-)
 from app.systems.relationship_engine import (
-    init_relationship,
-    generate_random_relationship,
-    should_defend,
+    generate_relationship_post,
     should_attack,
-    should_support
+    should_support,
+    should_defend,
+    ensure_handle
 )
 
-cagewire_feed = []
 
-fighter_posts = [
-    "Camp going crazy.",
-    "Locked in.",
-    "New fight news soon.",
-    "Nobody can stop me.",
-    "Focused.",
-]
-
-fan_posts = [
-    "That fight was wild.",
-    "He got robbed.",
-    "Future champ.",
-    "This division crazy."
-]
-
-general_posts = [
-    "Big news soon.",
-    "What a day.",
-    "Life moving fast."
-]
-
-defense_posts = [
-    "Y'all need to chill.",
-    "Stop disrespecting him.",
-    "He'll bounce back."
-]
-
-attack_posts = [
-    "Told y'all he was overrated.",
-    "Fraud.",
-    "He ain't built for this."
-]
-
-support_posts = [
-    "Still my favorite.",
-    "Always rocking with you.",
-    "Real ones know."
-]
-
-drama_posts = [
-    "Stop mentioning my name.",
-    "Keep talking.",
-    "Say it to my face."
-]
+POST_TEMPLATES = {
+    "fighter": [
+        "Training hard. Stay ready.",
+        "Big fight coming soon.",
+        "Nobody can stop me.",
+        "Legacy over everything."
+    ],
+    "artist": [
+        "New music dropping soon.",
+        "Studio all night.",
+        "Album mode activated.",
+        "Big collab on the way."
+    ],
+    "athlete": [
+        "Locked in for the season.",
+        "Work speaks louder than words.",
+        "Another day. Another grind."
+    ],
+    "celebrity": [
+        "Big moves behind the scenes.",
+        "Life been wild lately.",
+        "Blessed beyond measure."
+    ],
+    "business": [
+        "Big expansion coming.",
+        "New partnership announced.",
+        "Business never sleeps."
+    ],
+    "media": [
+        "Breaking story coming soon.",
+        "Sources say something major is happening.",
+        "Stay tuned."
+    ]
+}
 
 
-def generate_handle(entity):
-    if "handle" in entity:
-        return entity["handle"]
-
-    entity["handle"] = "@" + entity["name"].lower().replace(" ", ".")
-    return entity["handle"]
+def get_entity_type(entity):
+    return entity.get("type", "celebrity")
 
 
-def generate_dynamic_timestamp():
-    minutes_ago = random.randint(1, 1440)
-    return str(datetime.now() - timedelta(minutes=minutes_ago))
+def generate_base_post(entity):
+    entity_type = get_entity_type(entity)
+
+    if entity_type not in POST_TEMPLATES:
+        entity_type = "celebrity"
+
+    return random.choice(POST_TEMPLATES[entity_type])
 
 
-def should_post(entity):
-    buzz = get_buzz(entity)
-    posting_weight = get_posting_weight(entity)
+def generate_attack_post(entity):
+    possible_targets = [
+        x for x in world_entities
+        if ensure_handle(x) != ensure_handle(entity)
+    ]
 
-    final_score = posting_weight + buzz.get("buzz", 0)
-
-    return random.randint(1, 200) <= final_score
-
-
-def generate_engagement(entity):
-    social = get_social(entity)
-    buzz = get_buzz(entity)
-
-    followers = social["followers"]
-    buzz_score = buzz["buzz"]
-
-    reach = followers * random.uniform(0.01, 0.06)
-
-    if buzz_score > 80:
-        reach *= random.uniform(2, 4)
-
-    likes = int(reach)
-
-    comments = random.randint(
-        max(1, int(likes * 0.03)),
-        max(2, int(likes * 0.15))
-    )
-
-    shares = random.randint(
-        max(1, int(comments * 0.05)),
-        max(2, int(comments * 0.30))
-    )
-
-    return likes, comments, shares
-
-
-def generate_relationship_post(entity):
-    target = random.choice(world_entities)
-
-    if target["handle"] == entity["handle"]:
+    if not possible_targets:
         return None
 
-    if should_defend(entity, target["handle"]):
-        return random.choice(defense_posts)
+    target = random.choice(possible_targets)
 
-    if should_attack(entity, target["handle"]):
-        return random.choice(attack_posts)
+    if should_attack(entity, target):
+        return f"{target['name']} ain't on my level."
 
-    if should_support(entity, target["handle"]):
-        return random.choice(support_posts)
+    return None
+
+
+def generate_support_post(entity):
+    possible_targets = [
+        x for x in world_entities
+        if ensure_handle(x) != ensure_handle(entity)
+    ]
+
+    if not possible_targets:
+        return None
+
+    target = random.choice(possible_targets)
+
+    if should_support(entity, target):
+        return f"Respect to {target['name']}."
+
+    return None
+
+
+def generate_defense_post(entity):
+    possible_targets = [
+        x for x in world_entities
+        if ensure_handle(x) != ensure_handle(entity)
+    ]
+
+    if not possible_targets:
+        return None
+
+    target = random.choice(possible_targets)
+
+    if should_defend(entity, target):
+        return f"I stand with {target['name']}."
 
     return None
 
 
 def generate_content(entity):
-    relation_post = generate_relationship_post(entity)
+    roll = random.randint(1, 100)
 
-    if relation_post:
-        return relation_post
+    if roll <= 40:
+        return generate_base_post(entity)
 
-    if should_start_drama(entity):
-        return random.choice(drama_posts)
+    if roll <= 60:
+        relation_post = generate_relationship_post(entity, world_entities)
+        if relation_post:
+            return relation_post
 
-    recent_event = get_buzz(entity).get("recent_event")
+    if roll <= 75:
+        attack_post = generate_attack_post(entity)
+        if attack_post:
+            return attack_post
 
-    if recent_event and should_capitalize_event(entity):
-        if recent_event == "death":
-            return "Rest easy."
+    if roll <= 90:
+        support_post = generate_support_post(entity)
+        if support_post:
+            return support_post
 
-        if recent_event == "viral":
-            return "Appreciate the love."
+    defense_post = generate_defense_post(entity)
+    if defense_post:
+        return defense_post
 
-        if recent_event == "scandal":
-            return "Truth always wins."
-
-        if recent_event == "fight_win":
-            return "Told y'all."
-
-    if entity["type"] == "fighter":
-        return random.choice(fighter_posts)
-
-    if entity["type"] == "fan":
-        return random.choice(fan_posts)
-
-    return random.choice(general_posts)
+    return generate_base_post(entity)
 
 
 def create_post(entity):
-    content = generate_content(entity)
-
-    likes, comments, shares = generate_engagement(entity)
-
-    post = {
-        "author": entity["name"],
-        "handle": entity["handle"],
-        "verified": entity.get("verified", False),
-        "content": content,
-        "likes": likes,
-        "comments": comments,
-        "shares": shares,
-        "timestamp": generate_dynamic_timestamp(),
-        "buzz": get_buzz(entity)["buzz"],
-        "recent_event": get_buzz(entity)["recent_event"]
+    return {
+        "author": ensure_handle(entity),
+        "name": entity["name"],
+        "content": generate_content(entity)
     }
-
-    cagewire_feed.append(post)
-
-    return post
 
 
 def run_cagewire_cycle():
-    generated_posts = []
+    posts = []
 
-    generate_world_event(world_entities)
-
-    for entity in world_entities:
-        generate_handle(entity)
-
-        init_entity(entity)
-        init_social(entity)
-        init_personality(entity)
-        init_relationship(entity)
-
-        if random.randint(1, 100) <= 15:
-            generate_random_relationship(entity, world_entities)
-
-        update_buzz(entity)
-
-        if should_post(entity):
-            generated_posts.append(
-                create_post(entity)
-            )
-
-    return generated_posts
-
-
-def get_feed():
-    return sorted(
-        cagewire_feed,
-        key=lambda x: x["timestamp"],
-        reverse=True
+    active_entities = random.sample(
+        world_entities,
+        min(10, len(world_entities))
     )
 
+    for entity in active_entities:
+        posts.append(create_post(entity))
 
-def get_trending_posts():
-    trending_entities = get_trending_entities(world_entities)
-
-    trending_posts = []
-
-    for entity in trending_entities:
-        for post in cagewire_feed:
-            if post["handle"] == entity["handle"]:
-                trending_posts.append(post)
-
-    return sorted(
-        trending_posts,
-        key=lambda x: x["buzz"],
-        reverse=True
-    )[:10]
+    return posts
