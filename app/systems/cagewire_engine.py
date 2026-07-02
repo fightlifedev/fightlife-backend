@@ -159,17 +159,17 @@ def create_post(entity):
     comments = random.randint(5, 100) * (buzz // 2)
     shares = random.randint(1, 50) * (buzz // 3)
 
-return {
-    "author": ensure_handle(entity),
-    "name": entity["name"],
-    "content": content,
-    "likes": likes,
-    "comments": comments,
-    "shares": shares,
-    "buzz": buzz,
-    "verified": entity.get("verified", False),
-    "industry": entity.get("industry", "unknown")
-}
+    return {
+        "author": ensure_handle(entity),
+        "name": entity["name"],
+        "content": content,
+        "likes": likes,
+        "comments": comments,
+        "shares": shares,
+        "buzz": buzz,
+        "verified": entity.get("verified", False),
+        "industry": entity.get("industry", "unknown")
+    }
 
 def run_cagewire_cycle():
     posts = []
