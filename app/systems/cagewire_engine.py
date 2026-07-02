@@ -169,6 +169,7 @@ def create_post(entity):
         "buzz": buzz,
         "verified": entity.get("verified", False),
         "industry": entity.get("industry", "unknown")
+        "replies": random.randint(0, comments)
     }
 
 def run_cagewire_cycle():
