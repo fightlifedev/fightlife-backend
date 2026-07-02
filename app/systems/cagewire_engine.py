@@ -10,14 +10,16 @@ from app.systems.buzz_engine import (
 )
 from app.systems.event_engine import generate_world_event
 from app.systems.social_graph import init_social, get_social
+from app.systems.personality_engine import (
+    init_personality,
+    get_posting_weight,
+    should_start_drama,
+    should_capitalize_event
+)
 
 
 cagewire_feed = []
 
-
-# ==========================
-# POST TEMPLATES
-# ==========================
 
 fighter_posts = [
     "Camp going crazy.",
@@ -44,98 +46,101 @@ general_posts = [
     "Staying focused."
 ]
 
+drama_posts = [
+    "Stop mentioning my name.",
+    "Say it to my face.",
+    "You know what it is.",
+    "I'm not ducking nobody.",
+    "Keep talking."
+]
 
-# ==========================
-# HANDLE SYSTEM
-# ==========================
 
 def generate_handle(entity):
     if "handle" in entity and entity["handle"]:
         return entity["handle"]
 
     name = entity.get("name", "unknown")
-    clean = name.lower().replace(" ", "")
+    clean = name.lower().replace(" ", ".")
 
-    options = [
-        f"@{clean}",
-        f"@real{clean}",
-        f"@{clean}{random.randint(1,999)}"
-    ]
-
-    entity["handle"] = random.choice(options)
-
+    entity["handle"] = f"@{clean}"
     return entity["handle"]
 
-
-# ==========================
-# DYNAMIC TIME
-# ==========================
 
 def generate_dynamic_timestamp():
     minutes_ago = random.randint(1, 1440)
     return str(datetime.now() - timedelta(minutes=minutes_ago))
 
 
-# ==========================
-# SHOULD POST
-# ==========================
-
 def should_post(entity):
-    buzz_info = get_buzz(entity)
+    buzz = get_buzz(entity)
+    posting_weight = get_posting_weight(entity)
 
-    base_chance = 5
-    buzz_bonus = buzz_info.get("buzz", 0) // 5
-    momentum_bonus = max(0, buzz_info.get("momentum", 0))
+    buzz_bonus = buzz.get("buzz", 0) // 4
+    momentum_bonus = max(0, buzz.get("momentum", 0))
 
-    final_chance = min(90, base_chance + buzz_bonus + momentum_bonus)
+    final_score = posting_weight + buzz_bonus + momentum_bonus
 
-    roll = random.randint(1, 100)
+    return random.randint(1, 150) <= final_score
 
-    return roll <= final_chance
-
-
-# ==========================
-# ENGAGEMENT ENGINE
-# ==========================
 
 def generate_engagement(entity):
     social = get_social(entity)
-    buzz_info = get_buzz(entity)
+    buzz = get_buzz(entity)
 
     followers = social["followers"]
-    buzz = buzz_info["buzz"]
+    buzz_score = buzz["buzz"]
 
-    base_reach = max(10, followers * 0.01)
-    buzz_multiplier = 1 + (buzz / 100)
+    reach = followers * random.uniform(0.01, 0.08)
 
-    likes = int(base_reach * buzz_multiplier * random.uniform(0.5, 2.5))
+    if buzz_score > 80:
+        reach *= random.uniform(1.5, 4)
+
+    likes = int(reach)
 
     comments = random.randint(
-        max(1, likes // 20),
-        max(2, likes // 5)
+        max(1, int(likes * 0.03)),
+        max(2, int(likes * 0.20))
     )
 
     shares = random.randint(
-        max(1, comments // 5),
-        max(2, comments // 2)
+        max(1, int(comments * 0.10)),
+        max(2, int(comments * 0.50))
     )
 
     return likes, comments, shares
 
 
-# ==========================
-# CREATE POST
-# ==========================
+def generate_content(entity):
+    if should_start_drama(entity):
+        return random.choice(drama_posts)
 
-def create_post(entity):
+    recent_event = get_buzz(entity).get("recent_event")
+
+    if recent_event and should_capitalize_event(entity):
+        if recent_event == "death":
+            return "Rest easy. Legends never die."
+
+        if recent_event == "viral":
+            return "Appreciate all the love."
+
+        if recent_event == "scandal":
+            return "Truth always comes out."
+
+        if recent_event == "fight_win":
+            return "Told y'all."
+
     if entity["type"] == "fighter":
-        content = random.choice(fighter_posts)
+        return random.choice(fighter_posts)
 
     elif entity["type"] == "fan":
-        content = random.choice(fan_posts)
+        return random.choice(fan_posts)
 
     else:
-        content = random.choice(general_posts)
+        return random.choice(general_posts)
+
+
+def create_post(entity):
+    content = generate_content(entity)
 
     likes, comments, shares = generate_engagement(entity)
 
@@ -157,14 +162,9 @@ def create_post(entity):
     return post
 
 
-# ==========================
-# MAIN CYCLE
-# ==========================
-
 def run_cagewire_cycle():
     generated_posts = []
 
-    # random world event may happen
     generate_world_event(world_entities)
 
     for entity in world_entities:
@@ -172,6 +172,8 @@ def run_cagewire_cycle():
 
         init_entity(entity)
         init_social(entity)
+        init_personality(entity)
+
         update_buzz(entity)
 
         if should_post(entity):
@@ -182,10 +184,6 @@ def run_cagewire_cycle():
     return generated_posts
 
 
-# ==========================
-# FEED
-# ==========================
-
 def get_feed():
     return sorted(
         cagewire_feed,
@@ -193,10 +191,6 @@ def get_feed():
         reverse=True
     )
 
-
-# ==========================
-# TRENDING
-# ==========================
 
 def get_trending_posts():
     trending_entities = get_trending_entities(world_entities)
